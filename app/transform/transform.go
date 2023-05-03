@@ -13,7 +13,6 @@ import (
 	"github.com/aaronland/go-image/transform"
 	"github.com/aaronland/gocloud-blob/bucket"
 	"github.com/sfomuseum/go-flags/flagset"
-	"github.com/whosonfirst/go-ioutil"
 )
 
 func Run(ctx context.Context, logger *log.Logger) error {
@@ -43,19 +42,13 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet, logger *log.Logger) e
 
 	for _, key := range paths {
 
-		r, err := b.NewReader(ctx, key, nil)
+		r, err := bucket.NewReadSeekCloser(ctx, b, key, nil)
 
 		if err != nil {
 			return fmt.Errorf("Failed to open %s for reading, %v", key, err)
 		}
 
-		rs, err := ioutil.NewReadSeekCloser(r)
-
-		if err != nil {
-			return fmt.Errorf("Failed to create read seek closer for %s, %w", key, err)
-		}
-
-		defer rs.Close()
+		defer r.Close()
 
 		dec, err := decode.NewDecoder(ctx, key)
 
@@ -63,7 +56,7 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet, logger *log.Logger) e
 			return fmt.Errorf("Failed to create decoder for %s, %w", key, err)
 		}
 
-		im, im_format, err := dec.Decode(ctx, rs)
+		im, im_format, err := dec.Decode(ctx, r)
 
 		if err != nil {
 			return fmt.Errorf("Failed to decode %s, %v", key, err)
