@@ -5,9 +5,7 @@ import (
 	"log"
 
 	"github.com/aaronland/go-image/app/transform"
-	_ "github.com/aaronland/go-image/colour"
-	_ "github.com/aaronland/go-image/resize"
-	_ "gocloud.dev/blob/fileblob"
+	_ "github.com/aaronland/go-image/common"
 )
 
 func main() {

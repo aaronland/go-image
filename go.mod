@@ -7,6 +7,7 @@ require (
 	github.com/aaronland/gocloud-blob v0.0.9
 	github.com/mandykoh/prism v0.35.1
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
+	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
 	github.com/sfomuseum/go-flags v0.10.0
 	gocloud.dev v0.29.0
 )
