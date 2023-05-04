@@ -15,6 +15,14 @@ import (
 	"github.com/sfomuseum/go-flags/flagset"
 )
 
+type RunOptions struct {
+	TransformationURIs []string
+	BucketURI          string
+	ApplySuffix        string
+	ImageFormat        string
+	Logger             *log.Logger
+}
+
 func Run(ctx context.Context, logger *log.Logger) error {
 	fs := DefaultFlagSet()
 	return RunWithFlagSet(ctx, fs, logger)
@@ -24,13 +32,28 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet, logger *log.Logger) e
 
 	flagset.Parse(fs)
 
-	tr, err := transform.NewMultiTransformationWithURIs(ctx, transformation_uris...)
+	opts := &RunOptions{
+		TransformationURIs: transformation_uris,
+		BucketURI:          bucket_uri,
+		ApplySuffix:        apply_suffix,
+		ImageFormat:        image_format,
+		Logger:             logger,
+	}
+
+	paths := fs.Args()
+
+	return RunWithOptions(ctx, opts, paths...)
+}
+
+func RunWithOptions(ctx context.Context, opts *RunOptions, paths ...string) error {
+
+	tr, err := transform.NewMultiTransformationWithURIs(ctx, opts.TransformationURIs...)
 
 	if err != nil {
 		return fmt.Errorf("Failed to create transformation, %w", err)
 	}
 
-	b, err := bucket.OpenBucket(ctx, bucket_uri)
+	b, err := bucket.OpenBucket(ctx, opts.BucketURI)
 
 	if err != nil {
 		return fmt.Errorf("Failed to open bucket, %w", err)
@@ -38,9 +61,18 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet, logger *log.Logger) e
 
 	defer b.Close()
 
-	paths := fs.Args()
-
 	for _, key := range paths {
+
+		if opts.BucketURI == "file:///" {
+
+			abs_key, err := filepath.Abs(key)
+
+			if err != nil {
+				return fmt.Errorf("Failed to derive absolute path for %s, %w", key, err)
+			}
+
+			key = abs_key
+		}
 
 		r, err := bucket.NewReadSeekCloser(ctx, b, key, nil)
 
@@ -71,22 +103,22 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet, logger *log.Logger) e
 		new_key := key
 		new_ext := filepath.Ext(key)
 
-		if image_format != "" && image_format != im_format {
+		if opts.ImageFormat != "" && opts.ImageFormat != im_format {
 
 			old_ext := new_ext
-			new_ext = fmt.Sprintf(".%s", image_format)
+			new_ext = fmt.Sprintf(".%s", opts.ImageFormat)
 
 			new_key = strings.Replace(new_key, old_ext, new_ext, 1)
 		}
 
-		if apply_suffix != "" {
+		if opts.ApplySuffix != "" {
 
 			key_root := filepath.Dir(new_key)
 			key_name := filepath.Base(new_key)
 			key_ext := filepath.Ext(new_key)
 
 			new_keyname := strings.Replace(key_name, key_ext, "", 1)
-			new_keyname = fmt.Sprintf("%s%s%s", new_keyname, apply_suffix, key_ext)
+			new_keyname = fmt.Sprintf("%s%s%s", new_keyname, opts.ApplySuffix, key_ext)
 
 			new_key = filepath.Join(key_root, new_keyname)
 		}
@@ -95,10 +127,6 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet, logger *log.Logger) e
 
 		if err != nil {
 			return fmt.Errorf("Failed to create new writer for %s, %v", new_key, err)
-		}
-
-		if image_format == "" {
-			image_format = im_format
 		}
 
 		enc, err := encode.NewEncoder(ctx, new_key)
