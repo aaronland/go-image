@@ -32,7 +32,7 @@ func NewRotateTransformation(ctx context.Context, uri string) (transform.Transfo
 	query := parsed.Query()
 	orientation := query.Get("orientation")
 
-	if orientation != "" {
+	if orientation == "" {
 		orientation = "1"
 	}
 
