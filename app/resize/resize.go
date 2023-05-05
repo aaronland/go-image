@@ -41,6 +41,7 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet, logger *log.Logger) e
 		TransformationURIs: transformation_uris,
 		ApplySuffix:        suffix,
 		SourceURI:          source_uri,
+		TargetURI:          target_uri,
 		Logger:             logger,
 	}
 

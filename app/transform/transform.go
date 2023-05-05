@@ -37,6 +37,7 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet, logger *log.Logger) e
 	opts := &RunOptions{
 		TransformationURIs: transformation_uris,
 		SourceURI:          source_uri,
+		TargetURI:          source_uri,
 		ApplySuffix:        apply_suffix,
 		ImageFormat:        image_format,
 		Logger:             logger,
@@ -63,6 +64,14 @@ func RunWithOptions(ctx context.Context, opts *RunOptions, paths ...string) erro
 
 	defer source_b.Close()
 
+	target_b, err := bucket.OpenBucket(ctx, opts.TargetURI)
+
+	if err != nil {
+		return fmt.Errorf("Failed to open target, %w", err)
+	}
+
+	defer target_b.Close()
+
 	done_ch := make(chan bool)
 	err_ch := make(chan error)
 
@@ -73,7 +82,7 @@ func RunWithOptions(ctx context.Context, opts *RunOptions, paths ...string) erro
 
 		go func(key string) {
 
-			err := applyTransformation(ctx, opts, tr, source_b, key)
+			err := applyTransformation(ctx, opts, tr, source_b, target_b, key)
 
 			if err != nil {
 				err_ch <- err
@@ -99,7 +108,7 @@ func RunWithOptions(ctx context.Context, opts *RunOptions, paths ...string) erro
 	return nil
 }
 
-func applyTransformation(ctx context.Context, opts *RunOptions, tr transform.Transformation, source_b *blob.Bucket, key string) error {
+func applyTransformation(ctx context.Context, opts *RunOptions, tr transform.Transformation, source_b *blob.Bucket, target_b *blob.Bucket, key string) error {
 
 	if opts.SourceURI == "file:///" {
 
@@ -161,9 +170,7 @@ func applyTransformation(ctx context.Context, opts *RunOptions, tr transform.Tra
 		new_key = filepath.Join(key_root, new_keyname)
 	}
 
-	// TO DO: Use target_b...
-
-	wr, err := source_b.NewWriter(ctx, new_key, nil)
+	wr, err := target_b.NewWriter(ctx, new_key, nil)
 
 	if err != nil {
 		return fmt.Errorf("Failed to create new writer for %s, %v", new_key, err)

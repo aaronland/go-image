@@ -75,7 +75,7 @@ func RotateImageWithDegrees(ctx context.Context, im image.Image, degrees float64
 
 	// See also: https://github.com/anthonynsimon/bild#rotate
 	// The problem is that bild doesn't rotate the "canvas" just the image
-	
+
 	switch degrees {
 	case 90.0:
 		im = imaging.Rotate90(im)
