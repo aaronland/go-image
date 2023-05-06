@@ -5,7 +5,25 @@ import (
 	"image"
 	"io/ioutil"
 	"os"
+	"testing"
 )
+
+func TestEncoder(t *testing.T) {
+
+	ctx := context.Background()
+
+	_, err := NewEncoder(ctx, "example.jpg")
+
+	if err != nil {
+		t.Fatalf("Failed to create new JPEG encoder, %v", err)
+	}
+
+	_, err = NewEncoder(ctx, "example.tiff")
+
+	if err == nil {
+		t.Fatalf("Expected creation of TIFF encoder to fail")
+	}
+}
 
 func testEncoder(uri string) error {
 

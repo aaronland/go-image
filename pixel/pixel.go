@@ -10,7 +10,7 @@ import (
 // ReplacePixelKey is a struct that defines candidate pixel colours to replace with another colour
 type ReplacePixelKey struct {
 	// Zero or more `color.Color` instances whose pixel values will be replaced.
-	Candidates  []color.Color
+	Candidates []color.Color
 	// Replacement is a `color.Color` instance that will be used to replace specific pixels.
 	Replacement color.Color
 }
