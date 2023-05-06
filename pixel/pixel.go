@@ -7,13 +7,19 @@ import (
 	"sync"
 )
 
+// ReplacePixelKey is a struct that defines candidate pixel colours to replace with another colour
 type ReplacePixelKey struct {
+	// Zero or more `color.Color` instances whose pixel values will be replaced.
 	Candidates  []color.Color
+	// Replacement is a `color.Color` instance that will be used to replace specific pixels.
 	Replacement color.Color
 }
 
+// PixelFunc defines a function that will return a new colour for a given pixel colour at an x, y coordinate.
 type PixelFunc func(int, int, color.Color) (color.Color, error)
 
+// MakeMultiPixelFunc will return a new `PixelFunc` instance that will invoke apply
+// the functions defined in 'funcs'.
 func MakeMultiPixelFunc(funcs ...PixelFunc) (PixelFunc, error) {
 
 	f := func(x int, y int, c color.Color) (color.Color, error) {
@@ -35,6 +41,8 @@ func MakeMultiPixelFunc(funcs ...PixelFunc) (PixelFunc, error) {
 	return f, nil
 }
 
+// MakeReplacePixelFunc returns a new `PixelFunc` instance that will match and replace colours
+// defined by 'matches'.
 func MakeReplacePixelFunc(matches ...ReplacePixelKey) (PixelFunc, error) {
 
 	f := func(x int, y int, c color.Color) (color.Color, error) {
@@ -67,6 +75,8 @@ func MakeReplacePixelFunc(matches ...ReplacePixelKey) (PixelFunc, error) {
 	return f, nil
 }
 
+// MakeTransparentPixelFunc returns a new `PixelFunc` instance that will replace pixels matching
+// colours defined by 'matches' with transparent values.
 func MakeTransparentPixelFunc(matches ...color.Color) (PixelFunc, error) {
 
 	f := func(x int, y int, c color.Color) (color.Color, error) {
@@ -96,6 +106,7 @@ func MakeTransparentPixelFunc(matches ...color.Color) (PixelFunc, error) {
 	return f, nil
 }
 
+// ReplacePixels replaces all the pixels in 'im' according to rules defined by 'cb'.
 func ReplacePixels(im image.Image, cb PixelFunc) (image.Image, error) {
 
 	bounds := im.Bounds()
