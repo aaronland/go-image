@@ -2,14 +2,17 @@ package encode
 
 import (
 	"context"
+	"fmt"
 	"image"
 	"image/jpeg"
 	"io"
+	"net/url"
+	"strconv"
 )
 
 type JPEGEncoder struct {
 	Encoder
-	options *jpeg.Options
+	quality int
 }
 
 func init() {
@@ -20,15 +23,41 @@ func init() {
 
 func NewJPEGEncoder(ctx context.Context, uri string) (Encoder, error) {
 
-	opts := &jpeg.Options{Quality: 100}
+	quality := 100
+
+	u, err := url.Parse(uri)
+
+	if err != nil {
+		return nil, fmt.Errorf("Failed to parse URI, %w", err)
+	}
+
+	q := u.Query()
+
+	q_quality := q.Get("quality")
+
+	if q_quality != "" {
+
+		v, err := strconv.Atoi(q_quality)
+
+		if err != nil {
+			return nil, fmt.Errorf("Invalid ?quality= parameter, %w", err)
+		}
+
+		quality = v
+	}
 
 	e := &JPEGEncoder{
-		options: opts,
+		quality: quality,
 	}
 
 	return e, nil
 }
 
 func (e *JPEGEncoder) Encode(ctx context.Context, wr io.Writer, im image.Image) error {
-	return jpeg.Encode(wr, im, e.options)
+
+	opts := &jpeg.Options{
+		Quality: e.quality,
+	}
+
+	return jpeg.Encode(wr, im, opts)
 }
