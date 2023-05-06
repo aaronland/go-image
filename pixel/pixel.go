@@ -1,3 +1,4 @@
+// Package pixels provides methods for altering images at a per-pixel level.
 package pixel
 
 import (

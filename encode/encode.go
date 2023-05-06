@@ -1,3 +1,4 @@
+// Package encode provides methods for encoding images.
 package encode
 
 import (
