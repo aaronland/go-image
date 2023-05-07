@@ -16,21 +16,28 @@ func init() {
 	transform.RegisterTransformation(ctx, "adobergb", NewAdobeRGBTransformation)
 }
 
+// AdobeRGBTransformation implements the `transform.Transformation` interface for converting
+// all the colours in an image to match the Adobe RGB colour profile.
 type AdobeRGBTransformation struct {
 	transform.Transformation
 }
 
+// NewAdobeRGBTransformation returns a new `AdobeRGBTransformationTransformation` instance
+// configured by 'uri' which is expected to take the form of:
+//
+//	adobergb://
 func NewAdobeRGBTransformation(ctx context.Context, uri string) (transform.Transformation, error) {
 	tr := &AdobeRGBTransformation{}
 	return tr, nil
 }
 
+// Transform converts all the colours in 'im' to match the Adobe RGB colour profile.
 func (tr *AdobeRGBTransformation) Transform(ctx context.Context, im image.Image) (image.Image, error) {
 	new_im := ToAdobeRGB(im)
 	return new_im, nil
 }
 
-// ToAdobeRGB converts all the coloura in 'im' to match the Adobe RGB colour profile.
+// ToAdobeRGB converts all the colours in 'im' to match the Adobe RGB colour profile.
 func ToAdobeRGB(im image.Image) image.Image {
 
 	input_im := prism.ConvertImageToNRGBA(im, runtime.NumCPU())

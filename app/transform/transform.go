@@ -1,3 +1,6 @@
+// Package resize provides methods for running a base image transformation application
+// that can be imported alongside custom `transform.Transformation` and `gocloud.dev/blob`
+// packages.
 package transform
 
 import (
@@ -16,20 +19,29 @@ import (
 	"gocloud.dev/blob"
 )
 
+// RunOptions is a struct containing configuration details for running an image transformation application.
 type RunOptions struct {
+	// TranformationURIs is one or more `transform.Tranformation` URIs used to apply transformations to an image.
 	TransformationURIs []string
-	SourceURI          string
-	TargetURI          string
-	ApplySuffix        string
-	ImageFormat        string
-	Logger             *log.Logger
+	// SourceURI is a `gocloud.dev/blob.Bucket` URI specifying the location where images are read from.
+	SourceURI string
+	// SourceURI is a `gocloud.dev/blob.Bucket` URI specifying the location where images are written to.
+	TargetURI string
+	// ApplySuffix is an optional suffix to apply to the final image filename.
+	ApplySuffix string
+	// ImageFormat is an optional image format used to encode the final image.
+	ImageFormat string
+	// Logger is a `log.Logger` instance used for logging messages and feedback.
+	Logger *log.Logger
 }
 
+// Run invokes the image transformation application using the default flags.
 func Run(ctx context.Context, logger *log.Logger) error {
 	fs := DefaultFlagSet()
 	return RunWithFlagSet(ctx, fs, logger)
 }
 
+// Run invokes the image transformation application using a custom `flag.FlagSet` instance.
 func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet, logger *log.Logger) error {
 
 	flagset.Parse(fs)
@@ -48,6 +60,7 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet, logger *log.Logger) e
 	return RunWithOptions(ctx, opts, paths...)
 }
 
+// Run invokes the image transformation application configured using 'opts'.
 func RunWithOptions(ctx context.Context, opts *RunOptions, paths ...string) error {
 
 	tr, err := transform.NewMultiTransformationWithURIs(ctx, opts.TransformationURIs...)

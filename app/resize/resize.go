@@ -1,3 +1,6 @@
+// Package resize provides methods for running a base image resizing application
+// that can be imported alongside custom `transform.Transformation` and `gocloud.dev/blob`
+// packages.
 package resize
 
 import (
@@ -10,11 +13,13 @@ import (
 	"github.com/sfomuseum/go-flags/flagset"
 )
 
+// Run invokes the image resizing application using the default flags.
 func Run(ctx context.Context, logger *log.Logger) error {
 	fs := DefaultFlagSet()
 	return RunWithFlagSet(ctx, fs, logger)
 }
 
+// Run invokes the image resizing application using a custom `flag.FlagSet` instance.
 func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet, logger *log.Logger) error {
 
 	flagset.Parse(fs)

@@ -16,15 +16,22 @@ func init() {
 	transform.RegisterTransformation(ctx, "displayp3", NewDisplayP3Transformation)
 }
 
+// Displayp3Transformation implements the `transform.Transformation` interface for converting
+// all the colours in an image to match the Apple Display P3 colour profile.
 type DisplayP3Transformation struct {
 	transform.Transformation
 }
 
+// NewDisplayp3Transformation returns a new `Displayp3TransformationTransformation` instance
+// configured by 'uri' which is expected to take the form of:
+//
+//	displayp3://
 func NewDisplayP3Transformation(ctx context.Context, uri string) (transform.Transformation, error) {
 	tr := &DisplayP3Transformation{}
 	return tr, nil
 }
 
+// Transform converts all the colours in 'im' to match the Apple Display P3 colour profile.
 func (tr *DisplayP3Transformation) Transform(ctx context.Context, im image.Image) (image.Image, error) {
 	new_im := ToDisplayP3(im)
 	return new_im, nil
