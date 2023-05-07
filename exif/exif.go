@@ -1,3 +1,4 @@
+// Package exif provides methods for manipulating EXIF data in images.
 package exif
 
 import (
