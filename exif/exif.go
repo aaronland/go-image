@@ -1,4 +1,4 @@
-package image
+package exif
 
 import (
 	"fmt"
@@ -10,6 +10,8 @@ import (
 	"github.com/sfomuseum/go-exif-update"
 )
 
+// UpdateExif will encode 'im' as a JPEG image and write it to a temporary file and then
+// copy that (temporary) file to 'wr' with EXIF properties defined by 'exif_props'.
 func UpdateExif(im image.Image, wr io.Writer, exif_props map[string]interface{}) error {
 
 	temp_wr, err := os.CreateTemp("", "exif.*.jpg")
