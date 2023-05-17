@@ -6,12 +6,32 @@ import (
 	"fmt"
 	"image"
 	"io"
+	"os"
 	"net/url"
 	"path/filepath"
 	"strings"
 
 	"github.com/aaronland/go-roster"
 )
+
+func DecodeFromPath(ctx context.Context, path string) (image.Image, error) {
+
+	dec, err := NewDecoder(ctx, path)
+
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create new decoder, %w", err)
+	}
+
+	r, err := os.Open(path)
+
+	if err != nil {
+		return nil, fmt.Errorf("Failed to open path for reading, %w", err)
+	}
+
+	defer r.Close()
+	
+	return dec.Decode(ctx, r)
+}
 
 var decoders roster.Roster
 
