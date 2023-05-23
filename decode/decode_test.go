@@ -5,6 +5,22 @@ import (
 	"testing"
 )
 
+func TestDecodeFromPath(t *testing.T) {
+
+	ctx := context.Background()
+
+	_, format, err := DecodeFromPath(ctx, "../fixtures/tokyo.jpg")
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if format != "jpeg" {
+		t.Fatalf("Expected image to be 'jpeg' but is '%s'", format)
+	}
+
+}
+
 func TestDecoder(t *testing.T) {
 
 	ctx := context.Background()
