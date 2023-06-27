@@ -3,14 +3,27 @@ package bucket
 import (
 	"context"
 	"fmt"
-	gc_blob "gocloud.dev/blob"
 	"net/url"
+	"os"
+	
+	gc_blob "gocloud.dev/blob"	
 )
 
 // OpenBucket is a local helper function to open a gocloud.dev/blob Bucket URI and ensuring
 // that files will not be written with their corresponding metdata (`.attrs`) files.
 func OpenBucket(ctx context.Context, bucket_uri string) (*gc_blob.Bucket, error) {
 
+	if bucket_uri == "cwd://" {
+
+		cwd, err := os.Getwd()
+
+		if err != nil {
+			return nil, fmt.Errorf("Failed to derive current working directory, %w", err)
+		}
+
+		bucket_uri = fmt.Sprintf("file://%s", cwd)
+	}
+	
 	u, err := url.Parse(bucket_uri)
 
 	if err != nil {

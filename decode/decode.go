@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"image"
 	"io"
-	"os"
 	"net/url"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -29,8 +29,14 @@ func DecodeFromPath(ctx context.Context, path string) (image.Image, error) {
 	}
 
 	defer r.Close()
-	
-	return dec.Decode(ctx, r)
+
+	im, _, err := dec.Decode(ctx, r)
+
+	if err != nil {
+		return nil, fmt.Errorf("Failed to decode image from path, %w", err)
+	}
+
+	return im, nil
 }
 
 var decoders roster.Roster
