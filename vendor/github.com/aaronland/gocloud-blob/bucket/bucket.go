@@ -5,15 +5,22 @@ import (
 	"fmt"
 	"net/url"
 	"os"
-	
-	gc_blob "gocloud.dev/blob"	
+	"path/filepath"
+
+	gc_blob "gocloud.dev/blob"
 )
 
 // OpenBucket is a local helper function to open a gocloud.dev/blob Bucket URI and ensuring
 // that files will not be written with their corresponding metdata (`.attrs`) files.
 func OpenBucket(ctx context.Context, bucket_uri string) (*gc_blob.Bucket, error) {
 
-	if bucket_uri == "cwd://" {
+	u, err := url.Parse(bucket_uri)
+
+	if err != nil {
+		return nil, fmt.Errorf("Failed to parse bucket URI, %w", err)
+	}
+
+	if u.Scheme == "cwd" {
 
 		cwd, err := os.Getwd()
 
@@ -21,13 +28,8 @@ func OpenBucket(ctx context.Context, bucket_uri string) (*gc_blob.Bucket, error)
 			return nil, fmt.Errorf("Failed to derive current working directory, %w", err)
 		}
 
-		bucket_uri = fmt.Sprintf("file://%s", cwd)
-	}
-	
-	u, err := url.Parse(bucket_uri)
-
-	if err != nil {
-		return nil, fmt.Errorf("Failed to parse bucket URI, %w", err)
+		u.Scheme = "file"
+		u.Path = filepath.Join(cwd, u.Path)
 	}
 
 	if allowsToSkipMetadata(u) {
@@ -37,9 +39,10 @@ func OpenBucket(ctx context.Context, bucket_uri string) (*gc_blob.Bucket, error)
 		if q.Get("metadata") != "skip" {
 			q.Set("metadata", "skip")
 			u.RawQuery = q.Encode()
-			bucket_uri = u.String()
 		}
 	}
+
+	bucket_uri = u.String()
 
 	return gc_blob.OpenBucket(ctx, bucket_uri)
 }
