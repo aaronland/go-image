@@ -1,8 +1,8 @@
 # github.com/aaronland/go-roster v1.0.0
 ## explicit; go 1.16
 github.com/aaronland/go-roster
-# github.com/aaronland/gocloud-blob v0.0.14
-## explicit; go 1.18
+# github.com/aaronland/gocloud-blob v0.0.17
+## explicit; go 1.22.2
 github.com/aaronland/gocloud-blob/bucket
 # github.com/dsoprea/go-exif/v3 v3.0.0-20221012082141-d21ac8e2de85
 ## explicit; go 1.12
@@ -41,15 +41,10 @@ github.com/golang/geo/s2
 # github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da
 ## explicit
 github.com/golang/groupcache/lru
-# github.com/golang/protobuf v1.5.3
-## explicit; go 1.9
-github.com/golang/protobuf/jsonpb
+# github.com/golang/protobuf v1.5.4
+## explicit; go 1.17
 github.com/golang/protobuf/proto
-github.com/golang/protobuf/ptypes
-github.com/golang/protobuf/ptypes/any
-github.com/golang/protobuf/ptypes/duration
-github.com/golang/protobuf/ptypes/timestamp
-# github.com/googleapis/gax-go/v2 v2.12.0
+# github.com/googleapis/gax-go/v2 v2.12.2
 ## explicit; go 1.19
 github.com/googleapis/gax-go/v2
 github.com/googleapis/gax-go/v2/apierror
@@ -59,7 +54,7 @@ github.com/googleapis/gax-go/v2/internal
 # github.com/mandykoh/go-parallel v0.1.0
 ## explicit; go 1.15
 github.com/mandykoh/go-parallel
-# github.com/mandykoh/prism v0.35.2
+# github.com/mandykoh/prism v0.35.3
 ## explicit; go 1.14
 github.com/mandykoh/prism
 github.com/mandykoh/prism/adobergb
@@ -70,6 +65,13 @@ github.com/mandykoh/prism/displayp3
 github.com/mandykoh/prism/linear
 github.com/mandykoh/prism/linear/lut
 github.com/mandykoh/prism/matrix
+github.com/mandykoh/prism/meta
+github.com/mandykoh/prism/meta/autometa
+github.com/mandykoh/prism/meta/binary
+github.com/mandykoh/prism/meta/icc
+github.com/mandykoh/prism/meta/jpegmeta
+github.com/mandykoh/prism/meta/pngmeta
+github.com/mandykoh/prism/meta/webpmeta
 github.com/mandykoh/prism/srgb
 # github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 ## explicit
@@ -107,7 +109,7 @@ go.opencensus.io/trace
 go.opencensus.io/trace/internal
 go.opencensus.io/trace/propagation
 go.opencensus.io/trace/tracestate
-# gocloud.dev v0.36.0
+# gocloud.dev v0.37.0
 ## explicit; go 1.20
 gocloud.dev/blob
 gocloud.dev/blob/driver
@@ -118,7 +120,7 @@ gocloud.dev/internal/gcerr
 gocloud.dev/internal/oc
 gocloud.dev/internal/openurl
 gocloud.dev/internal/retry
-# golang.org/x/net v0.18.0
+# golang.org/x/net v0.25.0
 ## explicit; go 1.18
 golang.org/x/net/context
 golang.org/x/net/http/httpguts
@@ -127,10 +129,11 @@ golang.org/x/net/http2/hpack
 golang.org/x/net/idna
 golang.org/x/net/internal/timeseries
 golang.org/x/net/trace
-# golang.org/x/sys v0.15.0
+# golang.org/x/sys v0.20.0
 ## explicit; go 1.18
 golang.org/x/sys/unix
-# golang.org/x/text v0.14.0
+golang.org/x/sys/windows
+# golang.org/x/text v0.16.0
 ## explicit; go 1.18
 golang.org/x/text/secure/bidirule
 golang.org/x/text/transform
@@ -140,16 +143,16 @@ golang.org/x/text/unicode/norm
 ## explicit; go 1.18
 golang.org/x/xerrors
 golang.org/x/xerrors/internal
-# google.golang.org/api v0.151.0
+# google.golang.org/api v0.169.0
 ## explicit; go 1.19
 google.golang.org/api/googleapi
 google.golang.org/api/internal/third_party/uritemplates
-# google.golang.org/genproto/googleapis/rpc v0.0.0-20231120223509-83a465c0220f
+# google.golang.org/genproto/googleapis/rpc v0.0.0-20240311173647-c811ad7063a7
 ## explicit; go 1.19
 google.golang.org/genproto/googleapis/rpc/code
 google.golang.org/genproto/googleapis/rpc/errdetails
 google.golang.org/genproto/googleapis/rpc/status
-# google.golang.org/grpc v1.59.0
+# google.golang.org/grpc v1.62.1
 ## explicit; go 1.19
 google.golang.org/grpc
 google.golang.org/grpc/attributes
@@ -185,6 +188,7 @@ google.golang.org/grpc/internal/metadata
 google.golang.org/grpc/internal/pretty
 google.golang.org/grpc/internal/resolver
 google.golang.org/grpc/internal/resolver/dns
+google.golang.org/grpc/internal/resolver/dns/internal
 google.golang.org/grpc/internal/resolver/passthrough
 google.golang.org/grpc/internal/resolver/unix
 google.golang.org/grpc/internal/serviceconfig
@@ -196,18 +200,20 @@ google.golang.org/grpc/keepalive
 google.golang.org/grpc/metadata
 google.golang.org/grpc/peer
 google.golang.org/grpc/resolver
+google.golang.org/grpc/resolver/dns
 google.golang.org/grpc/serviceconfig
 google.golang.org/grpc/stats
 google.golang.org/grpc/status
 google.golang.org/grpc/tap
-# google.golang.org/protobuf v1.31.0
-## explicit; go 1.11
+# google.golang.org/protobuf v1.33.0
+## explicit; go 1.17
 google.golang.org/protobuf/encoding/protojson
 google.golang.org/protobuf/encoding/prototext
 google.golang.org/protobuf/encoding/protowire
 google.golang.org/protobuf/internal/descfmt
 google.golang.org/protobuf/internal/descopts
 google.golang.org/protobuf/internal/detrand
+google.golang.org/protobuf/internal/editiondefaults
 google.golang.org/protobuf/internal/encoding/defval
 google.golang.org/protobuf/internal/encoding/json
 google.golang.org/protobuf/internal/encoding/messageset
@@ -225,12 +231,14 @@ google.golang.org/protobuf/internal/set
 google.golang.org/protobuf/internal/strs
 google.golang.org/protobuf/internal/version
 google.golang.org/protobuf/proto
+google.golang.org/protobuf/protoadapt
 google.golang.org/protobuf/reflect/protodesc
 google.golang.org/protobuf/reflect/protoreflect
 google.golang.org/protobuf/reflect/protoregistry
 google.golang.org/protobuf/runtime/protoiface
 google.golang.org/protobuf/runtime/protoimpl
 google.golang.org/protobuf/types/descriptorpb
+google.golang.org/protobuf/types/gofeaturespb
 google.golang.org/protobuf/types/known/anypb
 google.golang.org/protobuf/types/known/durationpb
 google.golang.org/protobuf/types/known/timestamppb
