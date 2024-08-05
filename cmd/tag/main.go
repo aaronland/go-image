@@ -2,9 +2,9 @@ package main
 
 import (
 	"flag"
-	"os"
 	"log"
-	
+	"os"
+
 	"github.com/aaronland/go-image/colour"
 )
 

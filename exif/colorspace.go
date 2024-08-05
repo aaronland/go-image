@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"io"
 	_ "log"
-	
+
 	go_exif "github.com/dsoprea/go-exif/v3"
 	go_exifcommon "github.com/dsoprea/go-exif/v3/common"
 )
@@ -47,7 +47,7 @@ func Colorspace(r io.Reader) (string, error) {
 	}
 
 	var ifd *go_exif.Ifd
-	
+
 	for _, i := range index.Ifds {
 
 		ident := i.IfdIdentity()
@@ -63,7 +63,7 @@ func Colorspace(r io.Reader) (string, error) {
 	if ifd == nil {
 		return "", fmt.Errorf("Failed to find IFD/Exif")
 	}
-	
+
 	tagName := "ColorSpace"
 
 	results, err := ifd.FindTagWithName(tagName)

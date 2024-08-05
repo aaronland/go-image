@@ -2,8 +2,8 @@ package main
 
 import (
 	"flag"
-	"os"
 	"log"
+	"os"
 
 	"github.com/mandykoh/prism/meta/autometa"
 )
@@ -27,7 +27,6 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		
 
 		pr, err := md.ICCProfile()
 
