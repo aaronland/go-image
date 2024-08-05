@@ -5,6 +5,7 @@ go 1.22.4
 require (
 	github.com/aaronland/go-roster v1.0.0
 	github.com/aaronland/gocloud-blob v0.0.17
+	github.com/dsoprea/go-exif/v3 v3.0.0-20221012082141-d21ac8e2de85
 	github.com/mandykoh/prism v0.35.3
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
@@ -14,7 +15,6 @@ require (
 )
 
 require (
-	github.com/dsoprea/go-exif/v3 v3.0.0-20221012082141-d21ac8e2de85 // indirect
 	github.com/dsoprea/go-iptc v0.0.0-20200609062250-162ae6b44feb // indirect
 	github.com/dsoprea/go-jpeg-image-structure/v2 v2.0.0-20221012074422-4f3f7e934102 // indirect
 	github.com/dsoprea/go-logging v0.0.0-20200710184922-b02d349568dd // indirect

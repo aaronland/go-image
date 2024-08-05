@@ -62,6 +62,13 @@ github.com/mandykoh/prism/displayp3
 github.com/mandykoh/prism/linear
 github.com/mandykoh/prism/linear/lut
 github.com/mandykoh/prism/matrix
+github.com/mandykoh/prism/meta
+github.com/mandykoh/prism/meta/autometa
+github.com/mandykoh/prism/meta/binary
+github.com/mandykoh/prism/meta/icc
+github.com/mandykoh/prism/meta/jpegmeta
+github.com/mandykoh/prism/meta/pngmeta
+github.com/mandykoh/prism/meta/webpmeta
 github.com/mandykoh/prism/srgb
 # github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 ## explicit
