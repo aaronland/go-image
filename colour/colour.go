@@ -1,6 +1,10 @@
 // Package colour provides methods for working with colour profiles.
 package colour
 
+import (
+	"io"
+)
+
 const (
 	UnknownProfile Profile = iota
 	SRGBProfile
@@ -36,4 +40,9 @@ func StringToProfile(str_profile string) Profile {
 	default:
 		return UnknownProfile
 	}
+}
+
+func DeriveProfile(r io.Reader) (Profile, error) {
+
+	return UnknownProfile, nil
 }
