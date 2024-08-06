@@ -10,18 +10,6 @@ const (
 
 type Profile uint8
 
-// UNKNOWN defines an unknown or unspecified colour space/profile.
-const UNKNOWN_PROFILE string = "unknown"
-
-// SRGB defines the sRGB colour space/profile.
-const SRGB_PROFILE string = "sRGB"
-
-// DISPLAYP3 defines the Apple DisplayP3 colour space/profile
-const DISPLAYP3_PROFILE string = "DisplayP3"
-
-// ARGB defines the Adobe RGB colour space/profile.
-const ARGB_PROFILE string = "Adobe RGB"
-
 func (p Profile) String() string {
 
 	switch p {
