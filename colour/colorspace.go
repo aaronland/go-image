@@ -7,6 +7,12 @@ import (
 	"github.com/aaronland/go-image/exif"
 )
 
+const UNKNOWN_COLORSPACE uint16 = 65535
+
+const SRGB_COLORSPACE uint16 = 1
+
+const AGRB_COLORSPACE uint16 = 2
+
 func ColorSpace(r io.Reader) (uint16, error) {
 
 	tag, err := exif.TagValue(r, "ColorSpace", "IFD/Exif")
