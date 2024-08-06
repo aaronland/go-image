@@ -1,7 +1,9 @@
 package colour
 
 import (
+	"fmt"
 	"io"
+	"log/slog"
 )
 
 // UNKNOWN_MODEL defines an unknown or unspecified colour model.
@@ -53,7 +55,48 @@ func StringToModel(str_model string) Model {
 	}
 }
 
-func DeriveModel(r io.Reader) (Model, error) {
+func DeriveModel(r io.ReadSeeker) (Model, error) {
 
-	return UnknownModel, nil
+	pr, _ := ICCProfileDescription(r)
+
+	if pr != "" {
+
+		switch pr {
+		case ICC_DISPLAY_P3:
+			return AppleDisplayP3Model, nil
+		case ICC_EPSON_RGB_G18:
+			return SRGBModel, nil
+		case ICC_SRGB_21:
+			return SRGBModel, nil
+		case ICC_ADOBE_RGB_1998:
+			return AdobeRGBModel, nil
+		default:
+			slog.Warn("Unknown or unsupported ICC profile", "description", pr)
+		}
+	}
+
+	_, err := r.Seek(0, 0)
+
+	if err != nil {
+		return UnknownModel, fmt.Errorf("Failed to rewind reader after checking ICC profile, %w", err)
+	}
+
+	colorspace, err := ColorSpace(r)
+
+	if err != nil {
+		slog.Warn("Failed to derive colorspace, returning unknown", "error", err)
+		return UnknownModel, nil
+	}
+
+	switch colorspace {
+	case COLORSPACE_SRGB:
+		return SRGBModel, nil
+	case COLORSPACE_ARGB:
+		return AdobeRGBModel, nil
+	case COLORSPACE_UNKNOWN:
+		return UnknownModel, nil
+	default:
+		slog.Warn("Unknown or unsuported colorspace, returning unknown", "colorspace", colorspace)
+		return UnknownModel, nil		
+	}
 }
