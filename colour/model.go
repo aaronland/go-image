@@ -68,6 +68,8 @@ func DeriveModel(r io.ReadSeeker) (Model, error) {
 			return SRGBModel, nil
 		case ICC_SRGB_21:
 			return SRGBModel, nil
+		case ICC_CAMERA_RGB:
+			return SRGBModel, nil
 		case ICC_ADOBE_RGB_1998:
 			return AdobeRGBModel, nil
 		default:

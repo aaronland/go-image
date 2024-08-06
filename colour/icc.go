@@ -15,6 +15,8 @@ const ICC_ADOBE_RGB_1998 string = "Adobe RGB (1998)"
 
 const ICC_SRGB_21 string = "sRGB IEC61966-2.1"
 
+const ICC_CAMERA_RGB string = "Camera RGB Profile"
+
 func ICCProfileDescription(r io.Reader) (string, error) {
 
 	md, _, err := autometa.Load(r)
