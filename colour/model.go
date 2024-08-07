@@ -86,7 +86,7 @@ func DeriveModel(r io.ReadSeeker) (Model, error) {
 	colorspace, err := ColorSpace(r)
 
 	if err != nil {
-		slog.Warn("Failed to derive colorspace, returning unknown", "error", err)
+		// slog.Warn("Failed to derive colorspace, returning unknown", "error", err)
 		return UnknownModel, nil
 	}
 
