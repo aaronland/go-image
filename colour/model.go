@@ -19,12 +19,21 @@ const DISPLAYP3_MODEL string = "DisplayP3"
 const ARGB_MODEL string = "Adobe RGB"
 
 const (
+	// The unknown or undefined colour model.
 	UnknownModel Model = iota
+	// The colour model corresponding to the sRGB colour space.
 	SRGBModel
+	// The colour model corresponding to the Adobe RGB colour space.
 	AdobeRGBModel
+	// The colour model corresponding to the Apple Display P3 colour space.
 	AppleDisplayP3Model
 )
 
+// type Model defines an internal catalog of colour "models" for Go language image pixels.
+// Models are derived from ICC profile descriptions and EXIF ColorSpace definitions in that
+// order. The goal of these models is to provide hints to other applications which may need
+// or want to recast the colour space of individual pixels in Go language `image.Image` instances.
+// Currently there are only four "known" models: Apple's Display P3, Adobe RGB, sRGB and unknown.
 type Model uint8
 
 func (p Model) String() string {
@@ -41,6 +50,7 @@ func (p Model) String() string {
 	}
 }
 
+// StringToModel returns the `Model` instance matching 'str_model'.
 func StringToModel(str_model string) Model {
 
 	switch str_model {
@@ -55,6 +65,8 @@ func StringToModel(str_model string) Model {
 	}
 }
 
+// DeriveModel attempts to derive a `Model` instance from the body of 'r' by checking
+// for an ICC profile description or a EXIF ColorSpace definition, in that order.
 func DeriveModel(r io.ReadSeeker) (Model, error) {
 
 	pr, _ := ICCProfileDescription(r)
@@ -99,6 +111,6 @@ func DeriveModel(r io.ReadSeeker) (Model, error) {
 		return UnknownModel, nil
 	default:
 		slog.Warn("Unknown or unsuported colorspace, returning unknown", "colorspace", colorspace)
-		return UnknownModel, nil		
+		return UnknownModel, nil
 	}
 }

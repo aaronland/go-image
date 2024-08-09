@@ -26,7 +26,7 @@ func TestColorSpace(t *testing.T) {
 		t.Fatalf("Failed to derive colorspacefor %s, %v", path, err)
 	}
 
-	if cs != SRGB_COLORSPACE {
+	if cs != COLORSPACE_SRGB {
 		t.Fatalf("Unexpected colorspace value for %s, %d", path, cs)
 	}
 }
