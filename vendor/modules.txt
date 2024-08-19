@@ -48,6 +48,12 @@ github.com/googleapis/gax-go/v2/apierror
 github.com/googleapis/gax-go/v2/apierror/internal/proto
 github.com/googleapis/gax-go/v2/callctx
 github.com/googleapis/gax-go/v2/internal
+# github.com/jdeng/goheif v0.0.0-20200323230657-a0d6a8b3e68f
+## explicit
+github.com/jdeng/goheif
+github.com/jdeng/goheif/heif
+github.com/jdeng/goheif/heif/bmff
+github.com/jdeng/goheif/libde265
 # github.com/mandykoh/go-parallel v0.1.0
 ## explicit; go 1.15
 github.com/mandykoh/go-parallel
