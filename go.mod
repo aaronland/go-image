@@ -17,6 +17,7 @@ require (
 	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
 	github.com/sfomuseum/go-exif-update v0.2.0
 	github.com/sfomuseum/go-flags v0.10.0
+	github.com/strukturag/libheif-go v0.0.0-20250130134905-55b3482bea15
 	gocloud.dev v0.41.0
 )
 
