@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"image"
 	"image/jpeg"
-	_ "image/png"
+	"image/png"
 	"io"
 	"log"
 	"log/slog"
@@ -191,87 +191,12 @@ func DecodeImage(body []byte) (image.Image, *mimetype.MIME, *exif.Ifd, error) {
 				ifd = heic_ifd
 			}
 
-			// Ideally remove "Orientation" tag here but the following
-			// causes a panic below. Maybe there is an easier way?
-			// The dsoprea/go-{IMAGE} packages are  still a bit of mystery
-			// to me. See also:
+			// Note: We are NOT removing or updating the Orientation tag
+			// (which is assigned but incorrect) in libheif because I can
+			// not figure out hwo to do that using the dsoprea packages
+			// without causing everything to panic later in the code. Instead
+			// we are accounting for this in RotateFromOrientation
 			// https://github.com/strukturag/libheif/issues/227
-
-			/*
-				ib := exif.NewIfdBuilderFromExistingChain(heic_ifd)
-
-				ifdPath := "IFD0"
-
-				ifd_ib, err := exif.GetOrCreateIbFromRootIb(ib, ifdPath)
-
-				if err != nil {
-					return nil, nil, nil, err
-				}
-
-				oint, _ := strconv.Atoi("1")	// top left
-				oint16 := uint16(oint)
-
-				err = ifd_ib.SetStandardWithName("Orientation", []uint16{oint16})
-
-				if err != nil {
-					return nil, nil, nil, err
-				}
-
-				slog.Info("SET ORIENTATION TO 1")
-
-				var im_buf bytes.Buffer
-				im_wr := bufio.NewWriter(&im_buf)
-
-				err = jpeg.Encode(im_wr, im, nil)
-
-				if err != nil {
-					return nil, nil, nil, err
-				}
-
-				im_wr.Flush()
-
-				jpeg_jmp := jpegstructure.NewJpegMediaParser()
-				jpeg_mc, err := jpeg_jmp.ParseBytes(im_buf.Bytes())
-
-				if err != nil {
-					return nil, nil, nil, err
-				}
-
-				jpeg_ib := exif.NewIfdBuilderFromExistingChain(ifd)
-				jpeg_sl := jpeg_mc.(*jpegstructure.SegmentList)
-
-				err = jpeg_sl.SetExif(jpeg_ib)
-
-				if err != nil {
-					return nil, nil, nil, err
-				}
-
-				var jpeg_buf bytes.Buffer
-				jpeg_wr := bufio.NewWriter(&jpeg_buf)
-
-				err = jpeg_sl.Write(jpeg_wr)
-
-				if err != nil {
-					return nil, nil, nil, err
-				}
-
-				jpeg_wr.Flush()
-
-				buf_mp, err := jpeg_jmp.ParseBytes(jpeg_buf.Bytes())
-
-				if err != nil {
-					return nil, nil, nil, err
-				}
-
-				jpg_ifd, _, err := buf_mp.Exif()
-
-				if err != nil {
-					slog.Warn("Failed to derive EXIF from update JPEG ifd", "error", err)
-				} else {
-					ifd = jpg_ifd
-				}
-
-			*/
 
 		default:
 			return nil, nil, nil, fmt.Errorf("Unsupported media type")
@@ -319,6 +244,10 @@ func main() {
 
 		im = r_im
 
+		// Update EXIF if necessary
+
+		ib, err := newIfdBuilder(ifd, rotated)
+
 		// Write new image w/ EXIF
 
 		new_path := fmt.Sprintf("%s.jpg", path)
@@ -328,7 +257,7 @@ func main() {
 			log.Fatal(err)
 		}
 
-		err = WriteJpeg(wr, im, ifd, rotated)
+		err = WriteJPEG(wr, im, ib, rotated)
 
 		err = wr.Close()
 
@@ -340,13 +269,45 @@ func main() {
 	}
 }
 
-func WriteJpeg(wr io.Writer, im image.Image, ifd *exif.Ifd, rotated bool) error {
+func newIfdBuilder(ifd *exif.Ifd, rotated bool) (*exif.IfdBuilder, error) {
+
+	var ib *exif.IfdBuilder
+	
+	if ifd != nil {
+		
+		ib = exif.NewIfdBuilderFromExistingChain(ifd)
+		
+		if rotated {
+			
+			ifdPath := "IFD0"
+			
+			ifd_ib, err := exif.GetOrCreateIbFromRootIb(ib, ifdPath)
+			
+			if err != nil {
+				return nil, err
+			}
+			
+			oint, _ := strconv.Atoi("1") // top left
+			oint16 := uint16(oint)
+			
+			err = ifd_ib.SetStandardWithName("Orientation", []uint16{oint16})
+			
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+	
+	return ib, nil
+}
+
+func WriteJPEG(wr io.Writer, im image.Image, ib *exif.IfdBuilder, rotated bool) error {
 
 	jpeg_opts := &jpeg.Options{
 		Quality: 100,
 	}
 
-	if ifd == nil {
+	if ib == nil {
 		return jpeg.Encode(wr, im, jpeg_opts)
 	}
 
@@ -373,30 +334,7 @@ func WriteJpeg(wr io.Writer, im image.Image, ifd *exif.Ifd, rotated bool) error 
 		return err
 	}
 
-	ib := exif.NewIfdBuilderFromExistingChain(ifd)
 	sl := mp.(*jpegstructure.SegmentList)
-
-	if rotated {
-
-		ifdPath := "IFD0"
-
-		ifd_ib, err := exif.GetOrCreateIbFromRootIb(ib, ifdPath)
-
-		if err != nil {
-			return err
-		}
-
-		oint, _ := strconv.Atoi("1") // top left
-
-		oint16 := uint16(oint)
-
-		err = ifd_ib.SetStandardWithName("Orientation", []uint16{oint16})
-
-		if err != nil {
-			log.Fatal(err)
-		}
-
-	}
 
 	err = sl.SetExif(ib)
 
@@ -405,6 +343,50 @@ func WriteJpeg(wr io.Writer, im image.Image, ifd *exif.Ifd, rotated bool) error 
 	}
 
 	err = sl.Write(wr)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func WritePNG(wr io.Writer, im image.Image, ib *exif.IfdBuilder, rotated bool) error {
+
+	if ib == nil {
+		return png.Encode(wr, im)
+	}
+
+	var im_buf bytes.Buffer
+	im_wr := bufio.NewWriter(&im_buf)
+
+	err := png.Encode(im_wr, im)
+
+	if err != nil {
+		return err
+	}
+
+	im_wr.Flush()
+
+	// Write EXIF back to PNG
+
+	png_parser := pngstructure.NewPngMediaParser()
+
+	mp, err := png_parser.ParseBytes(im_buf.Bytes())
+
+	if err != nil {
+		return err
+	}
+
+	cs := mp.(*pngstructure.ChunkSlice)
+
+	err = cs.SetExif(ib)
+
+	if err != nil {
+		return err
+	}
+
+	err = cs.WriteTo(wr)
 
 	if err != nil {
 		return err
