@@ -5,7 +5,7 @@ import (
 	"image"
 	"runtime"
 
-	"github.com/aaronland/go-image/transform"
+	"github.com/aaronland/go-image/v2/transform"
 	"github.com/mandykoh/prism"
 	"github.com/mandykoh/prism/displayp3"
 	"github.com/mandykoh/prism/srgb"

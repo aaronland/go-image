@@ -1,4 +1,4 @@
-// Package resize provides methods for running a base image transformation application
+// Package transform provides methods for running a base image transformation application
 // that can be imported alongside custom `transform.Transformation` and `gocloud.dev/blob`
 // packages.
 package transform
@@ -7,61 +7,39 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"log"
 	"path/filepath"
 	"strings"
 
-	"github.com/aaronland/go-image/decode"
-	"github.com/aaronland/go-image/encode"
-	"github.com/aaronland/go-image/transform"
+	"github.com/aaronland/go-image/v2/decode"
+	"github.com/aaronland/go-image/v2/encode"
+	aa_exif "github.com/aaronland/go-image/v2/exif"
+	"github.com/aaronland/go-image/v2/transform"
 	"github.com/aaronland/gocloud-blob/bucket"
-	"github.com/sfomuseum/go-flags/flagset"
+	"github.com/dsoprea/go-exif/v3"
+	"github.com/gabriel-vasile/mimetype"
 	"gocloud.dev/blob"
 )
 
-// RunOptions is a struct containing configuration details for running an image transformation application.
-type RunOptions struct {
-	// TranformationURIs is one or more `transform.Tranformation` URIs used to apply transformations to an image.
-	TransformationURIs []string
-	// SourceURI is a `gocloud.dev/blob.Bucket` URI specifying the location where images are read from.
-	SourceURI string
-	// SourceURI is a `gocloud.dev/blob.Bucket` URI specifying the location where images are written to.
-	TargetURI string
-	// ApplySuffix is an optional suffix to apply to the final image filename.
-	ApplySuffix string
-	// ImageFormat is an optional image format used to encode the final image.
-	ImageFormat string
-	// Logger is a `log.Logger` instance used for logging messages and feedback.
-	Logger *log.Logger
-}
-
 // Run invokes the image transformation application using the default flags.
-func Run(ctx context.Context, logger *log.Logger) error {
+func Run(ctx context.Context) error {
 	fs := DefaultFlagSet()
-	return RunWithFlagSet(ctx, fs, logger)
+	return RunWithFlagSet(ctx, fs)
 }
 
 // Run invokes the image transformation application using a custom `flag.FlagSet` instance.
-func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet, logger *log.Logger) error {
+func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 
-	flagset.Parse(fs)
+	opts, err := RunOptionsFromFlagSet(fs)
 
-	opts := &RunOptions{
-		TransformationURIs: transformation_uris,
-		SourceURI:          source_uri,
-		TargetURI:          source_uri,
-		ApplySuffix:        apply_suffix,
-		ImageFormat:        image_format,
-		Logger:             logger,
+	if err != nil {
+		return err
 	}
 
-	paths := fs.Args()
-
-	return RunWithOptions(ctx, opts, paths...)
+	return RunWithOptions(ctx, opts)
 }
 
 // Run invokes the image transformation application configured using 'opts'.
-func RunWithOptions(ctx context.Context, opts *RunOptions, paths ...string) error {
+func RunWithOptions(ctx context.Context, opts *RunOptions) error {
 
 	tr, err := transform.NewMultiTransformationWithURIs(ctx, opts.TransformationURIs...)
 
@@ -91,7 +69,7 @@ func RunWithOptions(ctx context.Context, opts *RunOptions, paths ...string) erro
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	for _, key := range paths {
+	for _, key := range opts.Paths {
 
 		go func(key string) {
 
@@ -105,7 +83,7 @@ func RunWithOptions(ctx context.Context, opts *RunOptions, paths ...string) erro
 		}(key)
 	}
 
-	remaining := len(paths)
+	remaining := len(opts.Paths)
 
 	for remaining > 0 {
 		select {
@@ -134,21 +112,19 @@ func applyTransformation(ctx context.Context, opts *RunOptions, tr transform.Tra
 		key = abs_key
 	}
 
-	r, err := bucket.NewReadSeekCloser(ctx, source_b, key, nil)
+	im_r, err := bucket.NewReadSeekCloser(ctx, source_b, key, nil)
 
 	if err != nil {
 		return fmt.Errorf("Failed to open %s for reading, %v", key, err)
 	}
 
-	defer r.Close()
+	defer im_r.Close()
 
-	dec, err := decode.NewDecoder(ctx, key)
-
-	if err != nil {
-		return fmt.Errorf("Failed to create decoder for %s, %w", key, err)
+	decode_opts := &decode.DecodeImageOptions{
+		Rotate: opts.Rotate,
 	}
 
-	im, im_format, err := dec.Decode(ctx, r)
+	im, im_fmt, ifd, err := decode.DecodeImageWithOptions(ctx, im_r, decode_opts)
 
 	if err != nil {
 		return fmt.Errorf("Failed to decode %s, %v", key, err)
@@ -160,10 +136,23 @@ func applyTransformation(ctx context.Context, opts *RunOptions, tr transform.Tra
 		return fmt.Errorf("Failed to transform %s, %v", key, err)
 	}
 
+	var ib *exif.IfdBuilder
+
+	if opts.PreserveExif {
+
+		new_ib, err := aa_exif.NewIfdBuilderWithOrientation(ifd, "1")
+
+		if err != nil {
+			return fmt.Errorf("Failed to create new IFD builder, %w", err)
+		}
+
+		ib = new_ib
+	}
+
 	new_key := key
 	new_ext := filepath.Ext(key)
 
-	if opts.ImageFormat != "" && opts.ImageFormat != im_format {
+	if opts.ImageFormat != "" && opts.ImageFormat != im_fmt {
 
 		old_ext := new_ext
 		new_ext = fmt.Sprintf(".%s", opts.ImageFormat)
@@ -189,13 +178,33 @@ func applyTransformation(ctx context.Context, opts *RunOptions, tr transform.Tra
 		return fmt.Errorf("Failed to create new writer for %s, %v", new_key, err)
 	}
 
-	enc, err := encode.NewEncoder(ctx, new_key)
+	if opts.ImageFormat == "" {
 
-	if err != nil {
-		return fmt.Errorf("Failed to create new encoder, %w", err)
+		_, err := im_r.Seek(0, 0)
+
+		if err != nil {
+			return fmt.Errorf("Failed to rewind image reader to determine filetype, %w", err)
+		}
+
+		mtype, err := mimetype.DetectReader(im_r)
+
+		if err != nil {
+			return fmt.Errorf("Failed to determine image from image reader, %w", err)
+		}
+
+		opts.ImageFormat = mtype.String()
 	}
 
-	err = enc.Encode(ctx, wr, new_im)
+	switch opts.ImageFormat {
+	case "jpg", "jpeg", "image/jpeg":
+		err = encode.EncodeJPEG(ctx, wr, new_im, ib, nil)
+	case "png", "image/png":
+		err = encode.EncodePNG(ctx, wr, new_im, ib)
+	case "tiff", "image/tiff":
+		err = encode.EncodeTIFF(ctx, wr, new_im, ib, nil)
+	default:
+		return fmt.Errorf("Unsupported filetype (%s)", opts.ImageFormat)
+	}
 
 	if err != nil {
 		return fmt.Errorf("Failed to encode %s, %w", new_key, err)

@@ -4,18 +4,16 @@ import (
 	"context"
 	"log"
 
-	"github.com/aaronland/go-image/app/resize"
-	_ "github.com/aaronland/go-image/common"
+	"github.com/aaronland/go-image/v2/app/resize"
+	_ "github.com/aaronland/go-image/v2/common"
 )
 
 func main() {
 
 	ctx := context.Background()
-	logger := log.Default()
-
-	err := resize.Run(ctx, logger)
+	err := resize.Run(ctx)
 
 	if err != nil {
-		logger.Fatalf("Failed to transform images, %v", err)
+		log.Fatalf("Failed to resize images, %v", err)
 	}
 }

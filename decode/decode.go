@@ -1,116 +1,210 @@
-// Package decode provides methods for decoding images.
 package decode
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"image"
 	"io"
-	"net/url"
-	"os"
-	"path/filepath"
-	"strings"
+	"log/slog"
 
-	"github.com/aaronland/go-roster"
+	_ "golang.org/x/image/tiff"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
+
+	"github.com/aaronland/go-image/v2/rotate"
+	"github.com/dsoprea/go-exif/v3"
+	"github.com/dsoprea/go-heic-exif-extractor/v2"
+	"github.com/dsoprea/go-jpeg-image-structure/v2"
+	"github.com/dsoprea/go-png-image-structure/v2"
+	"github.com/dsoprea/go-tiff-image-structure/v2"
+	"github.com/gabriel-vasile/mimetype"
 )
 
-func DecodeFromPath(ctx context.Context, path string) (image.Image, string, error) {
-
-	dec, err := NewDecoder(ctx, path)
-
-	if err != nil {
-		return nil, "", fmt.Errorf("Failed to create new decoder, %w", err)
-	}
-
-	r, err := os.Open(path)
-
-	if err != nil {
-		return nil, "", fmt.Errorf("Failed to open path for reading, %w", err)
-	}
-
-	defer r.Close()
-
-	return dec.Decode(ctx, r)
+type DecodeImageOptions struct {
+	Rotate bool
 }
 
-var decoders roster.Roster
+func DecodeImage(ctx context.Context, im_r io.ReadSeeker) (image.Image, string, *exif.Ifd, error) {
 
-// DecoderInitializationFunc is a function defined by individual decoder package and used to create
-// an instance of that decoder.
-type InitializeDecoderFunc func(context.Context, string) (Decoder, error)
+	opts := &DecodeImageOptions{
+		Rotate: true,
+	}
 
-type Decoder interface {
-	// Decode decodes an `io.ReaderSeeker` instance and returns an `image.Image` instance.
-	Decode(context.Context, io.ReadSeeker) (image.Image, string, error)
+	return DecodeImageWithOptions(ctx, im_r, opts)
 }
 
-func ensureRoster() error {
+func DecodeImageWithOptions(ctx context.Context, im_r io.ReadSeeker, opts *DecodeImageOptions) (image.Image, string, *exif.Ifd, error) {
 
-	if decoders == nil {
+	var ifd *exif.Ifd
+	var im image.Image
 
-		r, err := roster.NewDefaultRoster()
+	im_body, err := io.ReadAll(im_r)
+
+	if err != nil {
+		return nil, "", nil, err
+	}
+
+	br := bytes.NewReader(im_body)
+
+	im, im_fmt, err := image.Decode(br)
+
+	if err != nil {
+		// Check error here...
+		slog.Warn("Failed to decode image natively", "error", err)
+	}
+
+	mtype := mimetype.Detect(im_body)
+
+	switch im_fmt {
+	case "gif":
+		// pass
+	case "jpeg":
+
+		jmp := jpegstructure.NewJpegMediaParser()
+		mc, err := jmp.ParseBytes(im_body)
 
 		if err != nil {
-			return fmt.Errorf("Failed to create new decoder roster, %w", err)
+			return nil, "", nil, err
 		}
 
-		decoders = r
-	}
-
-	return nil
-}
-
-// RegisterDecoder registers 'scheme' as a key pointing to 'init_func' in an internal lookup table
-// used to create new `Decoder` instances by the `NewDecoder` method.
-func RegisterDecoder(ctx context.Context, f InitializeDecoderFunc, schemes ...string) error {
-
-	err := ensureRoster()
-
-	if err != nil {
-		return err
-	}
-
-	for _, s := range schemes {
-
-		err := decoders.Register(ctx, s, f)
+		jpg_ifd, _, err := mc.Exif()
 
 		if err != nil {
-			return err
+			slog.Warn("Failed to derive EXIF", "error", err)
+		} else {
+			ifd = jpg_ifd
+		}
+
+	case "png":
+
+		mp := pngstructure.NewPngMediaParser()
+
+		mc, err := mp.ParseBytes(im_body)
+
+		if err != nil {
+			return nil, "", nil, err
+		}
+
+		png_ifd, _, err := mc.Exif()
+
+		if err != nil {
+			slog.Warn("Failed to derive EXIF", "error", err)
+		} else {
+			ifd = png_ifd
+		}
+
+	case "tiff":
+
+		mp := tiffstructure.NewTiffMediaParser()
+
+		mc, err := mp.ParseBytes(im_body)
+
+		if err != nil {
+			return nil, "", nil, err
+		}
+
+		tiff_ifd, _, err := mc.Exif()
+
+		if err != nil {
+			slog.Warn("Failed to derive EXIF", "error", err)
+		} else {
+			ifd = tiff_ifd
+		}
+
+	default:
+
+		switch mtype.String() {
+		case "image/heic":
+
+			heic_im, err := ImageFromHEIC(im_body)
+
+			if err != nil {
+				return nil, "", nil, err
+			}
+
+			im = heic_im
+			im_fmt = "heic"
+
+			mp := heicexif.NewHeicExifMediaParser()
+			mc, err := mp.ParseBytes(im_body)
+
+			if err != nil {
+				return nil, "", nil, err
+			}
+
+			heic_ifd, _, err := mc.Exif()
+
+			if err != nil {
+				slog.Warn("Failed to derive EXIF", "error", err)
+			} else {
+				ifd = heic_ifd
+			}
+
+			// Note: We are NOT removing or updating the Orientation tag
+			// (which is assigned but incorrect) in libheif because I can
+			// not figure out hwo to do that using the dsoprea packages
+			// without causing everything to panic later in the code. Instead
+			// we are accounting for this in RotateFromOrientation
+			// https://github.com/strukturag/libheif/issues/227
+
+		default:
+			return nil, "", nil, fmt.Errorf("Unsupported media type")
 		}
 	}
 
-	return nil
+	if opts.Rotate {
+
+		_, r_im, err := rotateFromOrientation(ctx, im, mtype, ifd)
+
+		if err != nil {
+			return nil, "", nil, fmt.Errorf("Failed to rotate image, %w", err)
+		}
+
+		im = r_im
+	}
+
+	return im, mtype.String(), ifd, nil
 }
 
-// NewDecoder returns a new `Decoder` instance configured by 'uri'. The value of 'uri' is parsed
-// as a `url.URL` and its scheme is used as the key for a corresponding `DecoderInitializationFunc`
-// function used to instantiate the new `Decoder`. It is assumed that the scheme (and initialization
-// function) have been registered by the `RegisterDecoder` method.
-func NewDecoder(ctx context.Context, uri string) (Decoder, error) {
+func rotateFromOrientation(ctx context.Context, im image.Image, mtype *mimetype.MIME, ifd *exif.Ifd) (bool, image.Image, error) {
 
-	u, err := url.Parse(uri)
+	if ifd == nil {
+		return false, im, nil
+	}
+
+	// Ignore EXIF Orientation tags in libheif, kthxbye...
+	// https://github.com/strukturag/libheif/issues/227
+
+	if mtype.String() == "image/heic" {
+		return true, im, nil
+	}
+
+	results, err := ifd.FindTagWithName("Orientation")
 
 	if err != nil {
-		return nil, fmt.Errorf("Failed to parse URI, %w", err)
+		return false, nil, err
 	}
 
-	ext := filepath.Ext(uri)
-	scheme := strings.TrimLeft(ext, ".")
-
-	dec_u := url.URL{}
-	dec_u.Path = u.Path
-	dec_u.RawQuery = u.RawQuery
-
-	i, err := decoders.Driver(ctx, scheme)
+	ite := results[0]
+	orientation, err := ite.FormatFirst()
 
 	if err != nil {
-		return nil, fmt.Errorf("Failed to derive decoder for %s, %w", scheme, err)
+		return false, nil, err
 	}
 
-	if i == nil {
-		return nil, fmt.Errorf("Undefined decoder for %s", scheme)
+	// Rotate
+
+	if orientation == "1" {
+		return false, im, nil
 	}
 
-	f := i.(InitializeDecoderFunc)
-	return f(ctx, dec_u.String())
+	r_im, err := rotate.RotateImageWithOrientation(ctx, im, orientation)
+
+	if err != nil {
+		return false, nil, err
+	}
+
+	return true, r_im, nil
 }
