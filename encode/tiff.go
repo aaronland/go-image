@@ -1,15 +1,16 @@
 package encode
 
 import (
-	"github.com/dsoprea/go-exif/v3"
+	"context"
 	"image"
 	"io"
 	"log/slog"
 
+	"github.com/dsoprea/go-exif/v3"
 	"golang.org/x/image/tiff"
 )
 
-func EncodeTIFF(wr io.Writer, im image.Image, ib *exif.IfdBuilder, tiff_opts *tiff.Options) error {
+func EncodeTIFF(ctx context.Context, wr io.Writer, im image.Image, ib *exif.IfdBuilder, tiff_opts *tiff.Options) error {
 
 	if ib == nil {
 		return tiff.Encode(wr, im, tiff_opts)

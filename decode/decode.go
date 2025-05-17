@@ -194,8 +194,6 @@ func rotateFromOrientation(ctx context.Context, im image.Image, mtype *mimetype.
 		return false, nil, err
 	}
 
-	slog.Info("rotate", "orientation", orientation)
-
 	// Rotate
 
 	if orientation == "1" {

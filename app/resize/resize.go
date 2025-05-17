@@ -48,6 +48,7 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 		ApplySuffix:        suffix,
 		SourceURI:          source_uri,
 		TargetURI:          target_uri,
+		Rotate:             rotate,
 		PreserveExif:       preserve_exif,
 		Paths:              paths,
 	}

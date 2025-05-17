@@ -3,6 +3,7 @@ package encode
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"image"
 	"image/jpeg"
 	"io"
@@ -12,7 +13,7 @@ import (
 	"github.com/dsoprea/go-jpeg-image-structure/v2"
 )
 
-func EncodeJPEG(wr io.Writer, im image.Image, ib *exif.IfdBuilder, jpeg_opts *jpeg.Options) error {
+func EncodeJPEG(ctx context.Context, wr io.Writer, im image.Image, ib *exif.IfdBuilder, jpeg_opts *jpeg.Options) error {
 
 	if jpeg_opts == nil {
 

@@ -16,6 +16,7 @@ import (
 	"github.com/aaronland/go-image/v2/transform"
 	"github.com/aaronland/gocloud-blob/bucket"
 	"github.com/dsoprea/go-exif/v3"
+	"github.com/gabriel-vasile/mimetype"
 	"gocloud.dev/blob"
 )
 
@@ -120,7 +121,7 @@ func applyTransformation(ctx context.Context, opts *RunOptions, tr transform.Tra
 	defer im_r.Close()
 
 	decode_opts := &decode.DecodeImageOptions{
-		Rotate: true,
+		Rotate: opts.Rotate,
 	}
 
 	im, im_fmt, ifd, err := decode.DecodeImageWithOptions(ctx, im_r, decode_opts)
@@ -177,13 +178,30 @@ func applyTransformation(ctx context.Context, opts *RunOptions, tr transform.Tra
 		return fmt.Errorf("Failed to create new writer for %s, %v", new_key, err)
 	}
 
+	if opts.ImageFormat == "" {
+
+		_, err := im_r.Seek(0, 0)
+
+		if err != nil {
+			return fmt.Errorf("Failed to rewind image reader to determine filetype, %w", err)
+		}
+
+		mtype, err := mimetype.DetectReader(im_r)
+
+		if err != nil {
+			return fmt.Errorf("Failed to determine image from image reader, %w", err)
+		}
+
+		opts.ImageFormat = mtype.String()
+	}
+
 	switch opts.ImageFormat {
 	case "jpg", "jpeg", "image/jpeg":
-		err = encode.EncodeJPEG(wr, new_im, ib, nil)
+		err = encode.EncodeJPEG(ctx, wr, new_im, ib, nil)
 	case "png", "image/png":
-		err = encode.EncodePNG(wr, new_im, ib)
+		err = encode.EncodePNG(ctx, wr, new_im, ib)
 	case "tiff", "image/tiff":
-		err = encode.EncodeTIFF(wr, new_im, ib, nil)
+		err = encode.EncodeTIFF(ctx, wr, new_im, ib, nil)
 	default:
 		return fmt.Errorf("Unsupported filetype (%s)", opts.ImageFormat)
 	}

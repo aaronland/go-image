@@ -3,6 +3,7 @@ package encode
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"image"
 	"image/png"
 	"io"
@@ -12,7 +13,7 @@ import (
 	"github.com/dsoprea/go-png-image-structure/v2"
 )
 
-func EncodePNG(wr io.Writer, im image.Image, ib *exif.IfdBuilder) error {
+func EncodePNG(ctx context.Context, wr io.Writer, im image.Image, ib *exif.IfdBuilder) error {
 
 	if ib == nil {
 		return png.Encode(wr, im)

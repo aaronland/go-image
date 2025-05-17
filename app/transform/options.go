@@ -18,9 +18,13 @@ type RunOptions struct {
 	ApplySuffix string
 	// ImageFormat is an optional image format used to encode the final image.
 	ImageFormat string
-	// Copy EXIF data from source image to the final image.
+	// Copy EXIF data from source image to the final image. This does NOT update any of the original EXIF data with one exception:
+	// If the `Rotate` property is true OR the original image of type HEIC then the EXIF "Orientation" tag is re-written to be "1".
 	PreserveExif bool
-	Paths        []string
+	// Automatically rotate based on EXIF orientation.
+	Rotate bool
+	// One or more image URIs (paths) to transform.
+	Paths []string
 }
 
 func RunOptionsFromFlagSet(fs *flag.FlagSet) (*RunOptions, error) {
@@ -35,6 +39,7 @@ func RunOptionsFromFlagSet(fs *flag.FlagSet) (*RunOptions, error) {
 		TargetURI:          source_uri,
 		ApplySuffix:        apply_suffix,
 		ImageFormat:        image_format,
+		Rotate:             rotate,
 		PreserveExif:       preserve_exif,
 		Paths:              paths,
 	}
