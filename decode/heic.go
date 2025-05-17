@@ -1,3 +1,5 @@
+//go:build !nolibheif
+
 package decode
 
 import (

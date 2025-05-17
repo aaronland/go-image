@@ -2,23 +2,39 @@ package decode
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"image"
+	"log/slog"
+
+	_ "golang.org/x/image/tiff"
 	_ "image/gif"
 	_ "image/jpeg"
 	_ "image/png"
-	"log/slog"
 
+	"github.com/aaronland/go-image/rotate"
 	"github.com/dsoprea/go-exif/v3"
 	"github.com/dsoprea/go-heic-exif-extractor/v2"
 	"github.com/dsoprea/go-jpeg-image-structure/v2"
 	"github.com/dsoprea/go-png-image-structure/v2"
 	"github.com/dsoprea/go-tiff-image-structure/v2"
 	"github.com/gabriel-vasile/mimetype"
-	_ "golang.org/x/image/tiff"
 )
 
-func DecodeImage(body []byte) (image.Image, *mimetype.MIME, *exif.Ifd, error) {
+type DecodeImageOptions struct {
+	Rotate bool
+}
+
+func DecodeImage(ctx context.Context, body []byte) (image.Image, string, *exif.Ifd, error) {
+
+	opts := &DecodeImageOptions{
+		Rotate: true,
+	}
+
+	return DecodeImageWithOptions(ctx, body, opts)
+}
+
+func DecodeImageWithOptions(ctx context.Context, body []byte, opts *DecodeImageOptions) (image.Image, string, *exif.Ifd, error) {
 
 	var ifd *exif.Ifd
 	var im image.Image
@@ -43,7 +59,7 @@ func DecodeImage(body []byte) (image.Image, *mimetype.MIME, *exif.Ifd, error) {
 		mc, err := jmp.ParseBytes(body)
 
 		if err != nil {
-			return nil, nil, nil, err
+			return nil, "", nil, err
 		}
 
 		jpg_ifd, _, err := mc.Exif()
@@ -61,7 +77,7 @@ func DecodeImage(body []byte) (image.Image, *mimetype.MIME, *exif.Ifd, error) {
 		mc, err := mp.ParseBytes(body)
 
 		if err != nil {
-			return nil, nil, nil, err
+			return nil, "", nil, err
 		}
 
 		png_ifd, _, err := mc.Exif()
@@ -79,7 +95,7 @@ func DecodeImage(body []byte) (image.Image, *mimetype.MIME, *exif.Ifd, error) {
 		mc, err := mp.ParseBytes(body)
 
 		if err != nil {
-			return nil, nil, nil, err
+			return nil, "", nil, err
 		}
 
 		tiff_ifd, _, err := mc.Exif()
@@ -98,16 +114,17 @@ func DecodeImage(body []byte) (image.Image, *mimetype.MIME, *exif.Ifd, error) {
 			heic_im, err := ImageFromHEIC(body)
 
 			if err != nil {
-				return nil, nil, nil, err
+				return nil, "", nil, err
 			}
 
 			im = heic_im
+			im_fmt = "heic"
 
 			mp := heicexif.NewHeicExifMediaParser()
 			mc, err := mp.ParseBytes(body)
 
 			if err != nil {
-				return nil, nil, nil, err
+				return nil, "", nil, err
 			}
 
 			heic_ifd, _, err := mc.Exif()
@@ -126,9 +143,63 @@ func DecodeImage(body []byte) (image.Image, *mimetype.MIME, *exif.Ifd, error) {
 			// https://github.com/strukturag/libheif/issues/227
 
 		default:
-			return nil, nil, nil, fmt.Errorf("Unsupported media type")
+			return nil, "", nil, fmt.Errorf("Unsupported media type")
 		}
 	}
 
-	return im, mtype, ifd, nil
+	if opts.Rotate {
+
+		_, r_im, err := rotateFromOrientation(ctx, im, mtype, ifd)
+
+		if err != nil {
+			return nil, "", nil, fmt.Errorf("Failed to rotate image, %w", err)
+		}
+
+		im = r_im
+	}
+
+	return im, mtype.String(), ifd, nil
+}
+
+func rotateFromOrientation(ctx context.Context, im image.Image, mtype *mimetype.MIME, ifd *exif.Ifd) (bool, image.Image, error) {
+
+	if ifd == nil {
+		return false, im, nil
+	}
+
+	// Ignore EXIF Orientation tags in libheif, kthxbye...
+	// https://github.com/strukturag/libheif/issues/227
+
+	if mtype.String() == "image/heic" {
+		return true, im, nil
+	}
+
+	results, err := ifd.FindTagWithName("Orientation")
+
+	if err != nil {
+		return false, nil, err
+	}
+
+	ite := results[0]
+	orientation, err := ite.FormatFirst()
+
+	if err != nil {
+		return false, nil, err
+	}
+
+	slog.Info("rotate", "orientation", orientation)
+
+	// Rotate
+
+	if orientation == "1" {
+		return false, im, nil
+	}
+
+	r_im, err := rotate.RotateImageWithOrientation(ctx, im, orientation)
+
+	if err != nil {
+		return false, nil, err
+	}
+
+	return true, r_im, nil
 }
