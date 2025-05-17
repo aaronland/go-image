@@ -11,6 +11,7 @@ require (
 	github.com/dsoprea/go-heic-exif-extractor/v2 v2.0.0-20210512044107-62067e44c235
 	github.com/dsoprea/go-jpeg-image-structure/v2 v2.0.0-20221012074422-4f3f7e934102
 	github.com/dsoprea/go-png-image-structure/v2 v2.0.0-20210512210324-29b889a6093d
+	github.com/dsoprea/go-tiff-image-structure/v2 v2.0.0-20221003165014-8ecc4f52edca
 	github.com/gabriel-vasile/mimetype v1.4.9
 	github.com/mandykoh/prism v0.35.3
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
@@ -19,6 +20,7 @@ require (
 	github.com/sfomuseum/go-flags v0.10.0
 	github.com/strukturag/libheif-go v0.0.0-20250130134905-55b3482bea15
 	gocloud.dev v0.41.0
+	golang.org/x/image v0.18.0
 )
 
 require (
