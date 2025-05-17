@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"image"
+	"io"
 	"log/slog"
 
 	_ "golang.org/x/image/tiff"
@@ -25,21 +26,27 @@ type DecodeImageOptions struct {
 	Rotate bool
 }
 
-func DecodeImage(ctx context.Context, body []byte) (image.Image, string, *exif.Ifd, error) {
+func DecodeImage(ctx context.Context, im_r io.ReadSeeker) (image.Image, string, *exif.Ifd, error) {
 
 	opts := &DecodeImageOptions{
 		Rotate: true,
 	}
 
-	return DecodeImageWithOptions(ctx, body, opts)
+	return DecodeImageWithOptions(ctx, im_r, opts)
 }
 
-func DecodeImageWithOptions(ctx context.Context, body []byte, opts *DecodeImageOptions) (image.Image, string, *exif.Ifd, error) {
+func DecodeImageWithOptions(ctx context.Context, im_r io.ReadSeeker, opts *DecodeImageOptions) (image.Image, string, *exif.Ifd, error) {
 
 	var ifd *exif.Ifd
 	var im image.Image
 
-	br := bytes.NewReader(body)
+	im_body, err := io.ReadAll(im_r)
+
+	if err != nil {
+		return nil, "", nil, err
+	}
+
+	br := bytes.NewReader(im_body)
 
 	im, im_fmt, err := image.Decode(br)
 
@@ -48,7 +55,7 @@ func DecodeImageWithOptions(ctx context.Context, body []byte, opts *DecodeImageO
 		slog.Warn("Failed to decode image natively", "error", err)
 	}
 
-	mtype := mimetype.Detect(body)
+	mtype := mimetype.Detect(im_body)
 
 	switch im_fmt {
 	case "gif":
@@ -56,7 +63,7 @@ func DecodeImageWithOptions(ctx context.Context, body []byte, opts *DecodeImageO
 	case "jpeg":
 
 		jmp := jpegstructure.NewJpegMediaParser()
-		mc, err := jmp.ParseBytes(body)
+		mc, err := jmp.ParseBytes(im_body)
 
 		if err != nil {
 			return nil, "", nil, err
@@ -74,7 +81,7 @@ func DecodeImageWithOptions(ctx context.Context, body []byte, opts *DecodeImageO
 
 		mp := pngstructure.NewPngMediaParser()
 
-		mc, err := mp.ParseBytes(body)
+		mc, err := mp.ParseBytes(im_body)
 
 		if err != nil {
 			return nil, "", nil, err
@@ -92,7 +99,7 @@ func DecodeImageWithOptions(ctx context.Context, body []byte, opts *DecodeImageO
 
 		mp := tiffstructure.NewTiffMediaParser()
 
-		mc, err := mp.ParseBytes(body)
+		mc, err := mp.ParseBytes(im_body)
 
 		if err != nil {
 			return nil, "", nil, err
@@ -111,7 +118,7 @@ func DecodeImageWithOptions(ctx context.Context, body []byte, opts *DecodeImageO
 		switch mtype.String() {
 		case "image/heic":
 
-			heic_im, err := ImageFromHEIC(body)
+			heic_im, err := ImageFromHEIC(im_body)
 
 			if err != nil {
 				return nil, "", nil, err
@@ -121,7 +128,7 @@ func DecodeImageWithOptions(ctx context.Context, body []byte, opts *DecodeImageO
 			im_fmt = "heic"
 
 			mp := heicexif.NewHeicExifMediaParser()
-			mc, err := mp.ParseBytes(body)
+			mc, err := mp.ParseBytes(im_body)
 
 			if err != nil {
 				return nil, "", nil, err

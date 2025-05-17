@@ -1,4 +1,4 @@
-// Package resize provides methods for running a base image transformation application
+// Package transform provides methods for running a base image transformation application
 // that can be imported alongside custom `transform.Transformation` and `gocloud.dev/blob`
 // packages.
 package transform
@@ -13,8 +13,10 @@ import (
 
 	"github.com/aaronland/go-image/v2/decode"
 	"github.com/aaronland/go-image/v2/encode"
+	"github.com/aaronland/go-image/v2/exif"
 	"github.com/aaronland/go-image/v2/transform"
 	"github.com/aaronland/gocloud-blob/bucket"
+	"github.com/gabriel-vasile/mimetype"
 	"github.com/sfomuseum/go-flags/flagset"
 	"gocloud.dev/blob"
 )
@@ -134,21 +136,19 @@ func applyTransformation(ctx context.Context, opts *RunOptions, tr transform.Tra
 		key = abs_key
 	}
 
-	r, err := bucket.NewReadSeekCloser(ctx, source_b, key, nil)
+	im_r, err := bucket.NewReadSeekCloser(ctx, source_b, key, nil)
 
 	if err != nil {
 		return fmt.Errorf("Failed to open %s for reading, %v", key, err)
 	}
 
-	defer r.Close()
+	defer im_r.Close()
 
-	dec, err := decode.NewDecoder(ctx, key)
-
-	if err != nil {
-		return fmt.Errorf("Failed to create decoder for %s, %w", key, err)
+	decode_opts := &decode.DecodeImageOptions{
+		Rotate: true,
 	}
 
-	im, im_format, err := dec.Decode(ctx, r)
+	im, im_fmt, ifd, err := decode.DecodeImageWithOptions(ctx, im_r, decode_opts)
 
 	if err != nil {
 		return fmt.Errorf("Failed to decode %s, %v", key, err)
@@ -160,10 +160,16 @@ func applyTransformation(ctx context.Context, opts *RunOptions, tr transform.Tra
 		return fmt.Errorf("Failed to transform %s, %v", key, err)
 	}
 
+	ib, err := exif.NewIfdBuilderWithOrientation(ifd, "1")
+
+	if err != nil {
+		return fmt.Errorf("Failed to create new IFD builder, %w", err)
+	}
+
 	new_key := key
 	new_ext := filepath.Ext(key)
 
-	if opts.ImageFormat != "" && opts.ImageFormat != im_format {
+	if opts.ImageFormat != "" && opts.ImageFormat != im_fmt {
 
 		old_ext := new_ext
 		new_ext = fmt.Sprintf(".%s", opts.ImageFormat)
@@ -183,19 +189,28 @@ func applyTransformation(ctx context.Context, opts *RunOptions, tr transform.Tra
 		new_key = filepath.Join(key_root, new_keyname)
 	}
 
+	mtype, err := mimetype.DetectFile(new_key)
+
+	if err != nil {
+		return fmt.Errorf("Failed to derive filetype from key (%s), %w", key, err)
+	}
+
 	wr, err := target_b.NewWriter(ctx, new_key, nil)
 
 	if err != nil {
 		return fmt.Errorf("Failed to create new writer for %s, %v", new_key, err)
 	}
 
-	enc, err := encode.NewEncoder(ctx, new_key)
-
-	if err != nil {
-		return fmt.Errorf("Failed to create new encoder, %w", err)
+	switch mtype.String() {
+	case "image/jpeg":
+		err = encode.EncodeJPEG(wr, new_im, ib, nil)
+	case "image/png":
+		err = encode.EncodePNG(wr, new_im, ib)
+	case "image/tiff":
+		err = encode.EncodeTIFF(wr, new_im, ib, nil)
+	default:
+		return fmt.Errorf("Unsupported filetype (%s)", mtype.String())
 	}
-
-	err = enc.Encode(ctx, wr, new_im)
 
 	if err != nil {
 		return fmt.Errorf("Failed to encode %s, %w", new_key, err)

@@ -4,7 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"io"
+	_ "io"
 	"log"
 	_ "log/slog"
 	"os"
@@ -30,15 +30,7 @@ func main() {
 
 		defer r.Close()
 
-		body, err := io.ReadAll(r)
-
-		if err != nil {
-			log.Fatalf("Failed to read %s, %v", path, err)
-		}
-
-		// Open with EXIF
-
-		im, _, ifd, err := decode.DecodeImage(ctx, body)
+		im, _, ifd, err := decode.DecodeImage(ctx, r)
 
 		if err != nil {
 			log.Fatal(err)
