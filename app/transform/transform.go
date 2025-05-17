@@ -11,9 +11,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/aaronland/go-image/decode"
-	"github.com/aaronland/go-image/encode"
-	"github.com/aaronland/go-image/transform"
+	"github.com/aaronland/go-image/v2/decode"
+	"github.com/aaronland/go-image/v2/encode"
+	"github.com/aaronland/go-image/v2/transform"
 	"github.com/aaronland/gocloud-blob/bucket"
 	"github.com/sfomuseum/go-flags/flagset"
 	"gocloud.dev/blob"

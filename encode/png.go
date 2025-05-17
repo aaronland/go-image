@@ -1,35 +1,57 @@
 package encode
 
 import (
-	"context"
+	"bufio"
+	"bytes"
 	"image"
 	"image/png"
 	"io"
+	_ "log/slog"
+
+	"github.com/dsoprea/go-exif/v3"
+	"github.com/dsoprea/go-png-image-structure/v2"
 )
 
-// PNGEncoder is a struct that implements the `Encoder` interface for
-// encoding PNG images.
-type PNGEncoder struct {
-	Encoder
-}
+func EncodePNG(wr io.Writer, im image.Image, ib *exif.IfdBuilder) error {
 
-func init() {
+	if ib == nil {
+		return png.Encode(wr, im)
+	}
 
-	ctx := context.Background()
-	RegisterEncoder(ctx, NewPNGEncoder, "png")
-}
+	var im_buf bytes.Buffer
+	im_wr := bufio.NewWriter(&im_buf)
 
-// NewPNGEncoder returns a new `PNGEncoder` instance.
-// 'uri' in the form of:
-//
-//	/path/to/image.jpg
-func NewPNGEncoder(ctx context.Context, uri string) (Encoder, error) {
+	err := png.Encode(im_wr, im)
 
-	e := &PNGEncoder{}
-	return e, nil
-}
+	if err != nil {
+		return err
+	}
 
-// Encode will encode 'im' using the `image/png` package and write the results to 'wr'
-func (e *PNGEncoder) Encode(ctx context.Context, wr io.Writer, im image.Image) error {
-	return png.Encode(wr, im)
+	im_wr.Flush()
+
+	// Write EXIF back to PNG
+
+	png_parser := pngstructure.NewPngMediaParser()
+
+	mp, err := png_parser.ParseBytes(im_buf.Bytes())
+
+	if err != nil {
+		return err
+	}
+
+	cs := mp.(*pngstructure.ChunkSlice)
+
+	err = cs.SetExif(ib)
+
+	if err != nil {
+		return err
+	}
+
+	err = cs.WriteTo(wr)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

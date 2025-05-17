@@ -1,4 +1,4 @@
-module github.com/aaronland/go-image
+module github.com/aaronland/go-image/v2
 
 go 1.24
 

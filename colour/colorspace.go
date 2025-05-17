@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/aaronland/go-image/exif"
+	"github.com/aaronland/go-image/v2/exif"
 )
 
 // COLORSPACE_UNKNOWN is the EXIF value for unknown or undefined colorspaces.

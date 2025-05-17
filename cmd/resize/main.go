@@ -4,8 +4,8 @@ import (
 	"context"
 	"log"
 
-	"github.com/aaronland/go-image/app/resize"
-	_ "github.com/aaronland/go-image/common"
+	"github.com/aaronland/go-image/v2/app/resize"
+	_ "github.com/aaronland/go-image/v2/common"
 )
 
 func main() {

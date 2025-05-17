@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"image"
 
-	"github.com/aaronland/go-image/imaging"
+	"github.com/aaronland/go-image/v2/imaging"
 )
 
 // RotateImageWithOrientation will rotate 'im' based on EXIF orientation value defined in 'orientation'.

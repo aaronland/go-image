@@ -2,8 +2,8 @@
 package common
 
 import (
-	_ "github.com/aaronland/go-image/colour"
-	_ "github.com/aaronland/go-image/resize"
-	_ "github.com/aaronland/go-image/rotate"
+	_ "github.com/aaronland/go-image/v2/colour"
+	_ "github.com/aaronland/go-image/v2/resize"
+	_ "github.com/aaronland/go-image/v2/rotate"
 	_ "gocloud.dev/blob/fileblob"
 )

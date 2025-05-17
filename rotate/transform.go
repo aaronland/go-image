@@ -6,7 +6,7 @@ import (
 	"image"
 	"net/url"
 
-	"github.com/aaronland/go-image/transform"
+	"github.com/aaronland/go-image/v2/transform"
 )
 
 // RotateTransformation is a struct that implements the `Transformation` interface for

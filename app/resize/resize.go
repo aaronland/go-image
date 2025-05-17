@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/aaronland/go-image/app/transform"
+	"github.com/aaronland/go-image/v2/app/transform"
 	"github.com/sfomuseum/go-flags/flagset"
 )
 

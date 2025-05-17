@@ -9,9 +9,9 @@ import (
 	_ "log/slog"
 	"os"
 
-	"github.com/aaronland/go-image/decode"
-	"github.com/aaronland/go-image/encode"
-	"github.com/aaronland/go-image/exif"
+	"github.com/aaronland/go-image/v2/decode"
+	"github.com/aaronland/go-image/v2/encode"
+	"github.com/aaronland/go-image/v2/exif"
 )
 
 func main() {

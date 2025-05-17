@@ -1,74 +1,66 @@
 package encode
 
 import (
-	"context"
-	"fmt"
+	"bufio"
+	"bytes"
 	"image"
 	"image/jpeg"
 	"io"
-	"net/url"
-	"strconv"
+	_ "log/slog"
+
+	"github.com/dsoprea/go-exif/v3"
+	"github.com/dsoprea/go-jpeg-image-structure/v2"
 )
 
-// JPEGEncoder is a struct that implements the `Encoder` interface for
-// encoding JPEG images.
-type JPEGEncoder struct {
-	Encoder
-	quality int
-}
+func EncodeJPEG(wr io.Writer, im image.Image, ib *exif.IfdBuilder, jpeg_opts *jpeg.Options) error {
 
-func init() {
+	if jpeg_opts == nil {
 
-	ctx := context.Background()
-	RegisterEncoder(ctx, NewJPEGEncoder, "jpg", "jpeg")
-}
+		jpeg_opts = &jpeg.Options{
+			Quality: 100,
+		}
+	}
 
-// NewJPEGEncoder returns a new `JPEGEncoder` instance.
-// 'uri' in the form of:
-//
-//	/path/to/image.jpg?{OPTIONS}
-//
-// Where {OPTIONS} are:
-//   - ?quality={QUALITY} - an optional value specifying the quality of the
-//     JPEG image; default is 100.
-func NewJPEGEncoder(ctx context.Context, uri string) (Encoder, error) {
+	if ib == nil {
+		return jpeg.Encode(wr, im, jpeg_opts)
+	}
 
-	quality := 100
+	// Do EXIF dance
 
-	u, err := url.Parse(uri)
+	var im_buf bytes.Buffer
+	im_wr := bufio.NewWriter(&im_buf)
+
+	err := jpeg.Encode(im_wr, im, jpeg_opts)
 
 	if err != nil {
-		return nil, fmt.Errorf("Failed to parse URI, %w", err)
+		return err
 	}
 
-	q := u.Query()
+	im_wr.Flush()
 
-	q_quality := q.Get("quality")
+	// Write EXIF back to JPEG
 
-	if q_quality != "" {
+	jmp := jpegstructure.NewJpegMediaParser()
 
-		v, err := strconv.Atoi(q_quality)
+	mp, err := jmp.ParseBytes(im_buf.Bytes())
 
-		if err != nil {
-			return nil, fmt.Errorf("Invalid ?quality= parameter, %w", err)
-		}
-
-		quality = v
+	if err != nil {
+		return err
 	}
 
-	e := &JPEGEncoder{
-		quality: quality,
+	sl := mp.(*jpegstructure.SegmentList)
+
+	err = sl.SetExif(ib)
+
+	if err != nil {
+		return err
 	}
 
-	return e, nil
-}
+	err = sl.Write(wr)
 
-// Encode will encode 'im' using the `image/jpeg` package and write the results to 'wr'
-func (e *JPEGEncoder) Encode(ctx context.Context, wr io.Writer, im image.Image) error {
-
-	opts := &jpeg.Options{
-		Quality: e.quality,
+	if err != nil {
+		return err
 	}
 
-	return jpeg.Encode(wr, im, opts)
+	return nil
 }
