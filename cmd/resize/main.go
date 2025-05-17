@@ -11,11 +11,9 @@ import (
 func main() {
 
 	ctx := context.Background()
-	logger := log.Default()
-
-	err := resize.Run(ctx, logger)
+	err := resize.Run(ctx)
 
 	if err != nil {
-		logger.Fatalf("Failed to transform images, %v", err)
+		log.Fatalf("Failed to resize images, %v", err)
 	}
 }

@@ -52,7 +52,7 @@ $> go run cmd/transform/main.go \
 	-transformation-uri displayp3:// \
 	-apply-suffix -1280 \
 	-format png \
-	/usr/local/big-fish/big-fish-014.jpg
+	./fixtures/tokyo.jpg
 ```
 
 Create a new PNG image with the Apple DisplayP3 colour profile and a maximum dimension of 1280 pixels at `/usr/local/big-fish/big-fish-014-1280.png`.

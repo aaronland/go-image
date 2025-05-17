@@ -11,6 +11,7 @@ var max int
 var profile string
 var source_uri string
 var target_uri string
+var preserve_exif bool
 
 var extra_transformations multi.MultiCSVString
 
@@ -22,6 +23,7 @@ func DefaultFlagSet() *flag.FlagSet {
 
 	fs.IntVar(&max, "max", 0, "The maximum dimension of the resized image")
 	fs.StringVar(&profile, "profile", "", "An optional colour profile to apply to the resized image. Valid options are: adobergb, displayp3.")
+	fs.BoolVar(&preserve_exif, "preserve-exif", true, "Copy EXIF data from source image final target image.")
 
 	fs.StringVar(&source_uri, "source-uri", "file:///", "A valid gocloud.dev/blob.Bucket URI where images are read from.")
 	fs.StringVar(&target_uri, "target-uri", "file:///", "A valid gocloud.dev/blob.Bucket URI where images are written to.")

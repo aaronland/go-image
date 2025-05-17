@@ -12,6 +12,7 @@ var source_uri string
 var target_uri string
 var apply_suffix string
 var image_format string
+var preserve_exif bool
 
 // DefaultFlagSet returns a `flag.FlagSet` instance configured with the default flags
 // for running an image transformation application.
@@ -24,6 +25,7 @@ func DefaultFlagSet() *flag.FlagSet {
 	fs.StringVar(&target_uri, "target-uri", "file:///", "A valid gocloud.dev/blob.Bucket URI where images are written to.")
 	fs.StringVar(&apply_suffix, "apply-suffix", "", "An optional suffix to apply to the final image filename.")
 	fs.StringVar(&image_format, "format", "", "An optional image format used to encode the final image.")
+	fs.BoolVar(&preserve_exif, "preserve-exif", true, "Copy EXIF data from source image final target image.")
 
 	return fs
 }

@@ -7,63 +7,38 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"log"
 	"path/filepath"
 	"strings"
 
 	"github.com/aaronland/go-image/v2/decode"
 	"github.com/aaronland/go-image/v2/encode"
-	"github.com/aaronland/go-image/v2/exif"
+	aa_exif "github.com/aaronland/go-image/v2/exif"
 	"github.com/aaronland/go-image/v2/transform"
 	"github.com/aaronland/gocloud-blob/bucket"
-	"github.com/gabriel-vasile/mimetype"
-	"github.com/sfomuseum/go-flags/flagset"
+	"github.com/dsoprea/go-exif/v3"
 	"gocloud.dev/blob"
 )
 
-// RunOptions is a struct containing configuration details for running an image transformation application.
-type RunOptions struct {
-	// TranformationURIs is one or more `transform.Tranformation` URIs used to apply transformations to an image.
-	TransformationURIs []string
-	// SourceURI is a `gocloud.dev/blob.Bucket` URI specifying the location where images are read from.
-	SourceURI string
-	// SourceURI is a `gocloud.dev/blob.Bucket` URI specifying the location where images are written to.
-	TargetURI string
-	// ApplySuffix is an optional suffix to apply to the final image filename.
-	ApplySuffix string
-	// ImageFormat is an optional image format used to encode the final image.
-	ImageFormat string
-	// Logger is a `log.Logger` instance used for logging messages and feedback.
-	Logger *log.Logger
-}
-
 // Run invokes the image transformation application using the default flags.
-func Run(ctx context.Context, logger *log.Logger) error {
+func Run(ctx context.Context) error {
 	fs := DefaultFlagSet()
-	return RunWithFlagSet(ctx, fs, logger)
+	return RunWithFlagSet(ctx, fs)
 }
 
 // Run invokes the image transformation application using a custom `flag.FlagSet` instance.
-func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet, logger *log.Logger) error {
+func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 
-	flagset.Parse(fs)
+	opts, err := RunOptionsFromFlagSet(fs)
 
-	opts := &RunOptions{
-		TransformationURIs: transformation_uris,
-		SourceURI:          source_uri,
-		TargetURI:          source_uri,
-		ApplySuffix:        apply_suffix,
-		ImageFormat:        image_format,
-		Logger:             logger,
+	if err != nil {
+		return err
 	}
 
-	paths := fs.Args()
-
-	return RunWithOptions(ctx, opts, paths...)
+	return RunWithOptions(ctx, opts)
 }
 
 // Run invokes the image transformation application configured using 'opts'.
-func RunWithOptions(ctx context.Context, opts *RunOptions, paths ...string) error {
+func RunWithOptions(ctx context.Context, opts *RunOptions) error {
 
 	tr, err := transform.NewMultiTransformationWithURIs(ctx, opts.TransformationURIs...)
 
@@ -93,7 +68,7 @@ func RunWithOptions(ctx context.Context, opts *RunOptions, paths ...string) erro
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	for _, key := range paths {
+	for _, key := range opts.Paths {
 
 		go func(key string) {
 
@@ -107,7 +82,7 @@ func RunWithOptions(ctx context.Context, opts *RunOptions, paths ...string) erro
 		}(key)
 	}
 
-	remaining := len(paths)
+	remaining := len(opts.Paths)
 
 	for remaining > 0 {
 		select {
@@ -160,10 +135,17 @@ func applyTransformation(ctx context.Context, opts *RunOptions, tr transform.Tra
 		return fmt.Errorf("Failed to transform %s, %v", key, err)
 	}
 
-	ib, err := exif.NewIfdBuilderWithOrientation(ifd, "1")
+	var ib *exif.IfdBuilder
 
-	if err != nil {
-		return fmt.Errorf("Failed to create new IFD builder, %w", err)
+	if opts.PreserveExif {
+
+		new_ib, err := aa_exif.NewIfdBuilderWithOrientation(ifd, "1")
+
+		if err != nil {
+			return fmt.Errorf("Failed to create new IFD builder, %w", err)
+		}
+
+		ib = new_ib
 	}
 
 	new_key := key
@@ -189,27 +171,21 @@ func applyTransformation(ctx context.Context, opts *RunOptions, tr transform.Tra
 		new_key = filepath.Join(key_root, new_keyname)
 	}
 
-	mtype, err := mimetype.DetectFile(new_key)
-
-	if err != nil {
-		return fmt.Errorf("Failed to derive filetype from key (%s), %w", key, err)
-	}
-
 	wr, err := target_b.NewWriter(ctx, new_key, nil)
 
 	if err != nil {
 		return fmt.Errorf("Failed to create new writer for %s, %v", new_key, err)
 	}
 
-	switch mtype.String() {
-	case "image/jpeg":
+	switch opts.ImageFormat {
+	case "jpg", "jpeg", "image/jpeg":
 		err = encode.EncodeJPEG(wr, new_im, ib, nil)
-	case "image/png":
+	case "png", "image/png":
 		err = encode.EncodePNG(wr, new_im, ib)
-	case "image/tiff":
+	case "tiff", "image/tiff":
 		err = encode.EncodeTIFF(wr, new_im, ib, nil)
 	default:
-		return fmt.Errorf("Unsupported filetype (%s)", mtype.String())
+		return fmt.Errorf("Unsupported filetype (%s)", opts.ImageFormat)
 	}
 
 	if err != nil {

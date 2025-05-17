@@ -7,20 +7,19 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"log"
 
 	"github.com/aaronland/go-image/v2/app/transform"
 	"github.com/sfomuseum/go-flags/flagset"
 )
 
 // Run invokes the image resizing application using the default flags.
-func Run(ctx context.Context, logger *log.Logger) error {
+func Run(ctx context.Context) error {
 	fs := DefaultFlagSet()
-	return RunWithFlagSet(ctx, fs, logger)
+	return RunWithFlagSet(ctx, fs)
 }
 
 // Run invokes the image resizing application using a custom `flag.FlagSet` instance.
-func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet, logger *log.Logger) error {
+func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 
 	flagset.Parse(fs)
 
@@ -42,15 +41,16 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet, logger *log.Logger) e
 		transformation_uris = append(transformation_uris, profile_uri)
 	}
 
+	paths := fs.Args()
+
 	opts := &transform.RunOptions{
 		TransformationURIs: transformation_uris,
 		ApplySuffix:        suffix,
 		SourceURI:          source_uri,
 		TargetURI:          target_uri,
-		Logger:             logger,
+		PreserveExif:       preserve_exif,
+		Paths:              paths,
 	}
 
-	paths := fs.Args()
-
-	return transform.RunWithOptions(ctx, opts, paths...)
+	return transform.RunWithOptions(ctx, opts)
 }
