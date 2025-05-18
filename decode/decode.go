@@ -9,6 +9,8 @@ import (
 	"log/slog"
 
 	_ "golang.org/x/image/tiff"
+	_ "golang.org/x/image/webp"
+	_ "golang.org/x/image/bmp"	
 	_ "image/gif"
 	_ "image/jpeg"
 	_ "image/png"
@@ -58,7 +60,7 @@ func DecodeImageWithOptions(ctx context.Context, im_r io.ReadSeeker, opts *Decod
 	mtype := mimetype.Detect(im_body)
 
 	switch im_fmt {
-	case "gif":
+	case "gif", "webp", "bmp":
 		// pass
 	case "jpeg":
 
