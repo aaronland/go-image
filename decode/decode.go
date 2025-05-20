@@ -8,9 +8,9 @@ import (
 	"io"
 	"log/slog"
 
+	_ "golang.org/x/image/bmp"
 	_ "golang.org/x/image/tiff"
 	_ "golang.org/x/image/webp"
-	_ "golang.org/x/image/bmp"	
 	_ "image/gif"
 	_ "image/jpeg"
 	_ "image/png"

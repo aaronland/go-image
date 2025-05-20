@@ -2,8 +2,6 @@ module github.com/aaronland/go-image/v2
 
 go 1.24
 
-toolchain go1.24.3
-
 require (
 	github.com/aaronland/go-roster v1.0.0
 	github.com/aaronland/gocloud-blob v0.5.0
@@ -20,7 +18,7 @@ require (
 	github.com/sfomuseum/go-flags v0.10.0
 	github.com/strukturag/libheif-go v0.0.0-20250130134905-55b3482bea15
 	gocloud.dev v0.41.0
-	golang.org/x/image v0.18.0
+	golang.org/x/image v0.27.0
 )
 
 require (
@@ -39,7 +37,7 @@ require (
 	go4.org v0.0.0-20200411211856-f5505b9728dd // indirect
 	golang.org/x/net v0.39.0 // indirect
 	golang.org/x/sys v0.32.0 // indirect
-	golang.org/x/text v0.24.0 // indirect
+	golang.org/x/text v0.25.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
 	google.golang.org/api v0.228.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250324211829-b45e905df463 // indirect
