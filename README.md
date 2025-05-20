@@ -128,8 +128,12 @@ $> go run cmd/transform/main.go \
 	./fixtures/tokyo.jpg
 ```
 
-## HEIC images
+## Decoders
 
-By default this package supports decoding HEIC images using the [strukturag/libheif-go](http://github.com/strukturag/libheif-go) package which, in turn, depends on the presence of the `libheif` library. If you want or need to disable this build your code (or the command line tools) passing the in the `-tags no_libheif` flag.
+## Encoders
+
+### HEIC images
+
+By default this package supports decoding HEIC images using the [strukturag/libheif-go](http://github.com/strukturag/libheif-go) package which, in turn, depends on the presence of the `libheif` library but when you are compiling your code (or the command line tools) you will need to pass in the `-tags libheif` flag.
 
 It is not possible to write (encode) HEIC images yet.
