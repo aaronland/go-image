@@ -202,6 +202,10 @@ func applyTransformation(ctx context.Context, opts *RunOptions, tr transform.Tra
 		err = encode.EncodePNG(ctx, wr, new_im, ib)
 	case "tiff", "image/tiff":
 		err = encode.EncodeTIFF(ctx, wr, new_im, ib, nil)
+	case "bmp", "image/bmp":
+		err = encode.EncodeBMP(ctx, wr, new_im, ib)
+	case "heic", "image/heic":
+		err = encode.EncodeHEIC(ctx, wr, new_im, ib)
 	default:
 		return fmt.Errorf("Unsupported filetype (%s)", opts.ImageFormat)
 	}

@@ -56,6 +56,12 @@ _Error handling removed for the sake of brevity._
 
 ## Tools
 
+```
+$> make cli TAGS=libheif
+go build -mod vendor -ldflags="-s -w" -tags libheif -o bin/transform cmd/transform/main.go
+go build -mod vendor -ldflags="-s -w" -tags libheif -o bin/resize cmd/resize/main.go
+```
+
 ### resize
 
 Resize one or more images.
@@ -130,10 +136,28 @@ $> go run cmd/transform/main.go \
 
 ## Decoders
 
-## Encoders
+The following image decoders are supported by default:
+
+* `image/bmp`
+* `image/gif`
+* `image/heic` (if built with `libheif` tag)
+* `image/jpeg`
+* `image/png`
+* `image/tiff`
+* `image/webp`
 
 ### HEIC images
 
 By default this package supports decoding HEIC images using the [strukturag/libheif-go](http://github.com/strukturag/libheif-go) package which, in turn, depends on the presence of the `libheif` library but when you are compiling your code (or the command line tools) you will need to pass in the `-tags libheif` flag.
 
-It is not possible to write (encode) HEIC images yet.
+## Encoders
+
+* `image/bmp`
+* `image/heic` (if built with `libheif` tag)
+* `image/jpeg`
+* `image/png`
+* `image/tiff`
+
+### HEIC images
+
+By default this package supports encoding HEIC images using the [strukturag/libheif-go](http://github.com/strukturag/libheif-go) package which, in turn, depends on the presence of the `libheif` library but when you are compiling your code (or the command line tools) you will need to pass in the `-tags libheif` flag.
