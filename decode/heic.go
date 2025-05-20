@@ -1,4 +1,4 @@
-//go:build !no_libheif
+//go:build libheif
 
 package decode
 
