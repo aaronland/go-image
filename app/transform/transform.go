@@ -14,7 +14,7 @@ import (
 	"github.com/aaronland/go-image/v2/encode"
 	aa_exif "github.com/aaronland/go-image/v2/exif"
 	"github.com/aaronland/go-image/v2/transform"
-	"github.com/aaronland/gocloud-blob/bucket"
+	"github.com/aaronland/gocloud/blob/bucket"
 	"github.com/dsoprea/go-exif/v3"
 	"github.com/gabriel-vasile/mimetype"
 	"gocloud.dev/blob"
