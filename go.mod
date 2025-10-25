@@ -4,7 +4,7 @@ go 1.25.0
 
 require (
 	github.com/aaronland/go-roster v1.0.0
-	github.com/aaronland/gocloud v1.0.0
+	github.com/aaronland/gocloud v1.0.1
 	github.com/dsoprea/go-exif/v3 v3.0.1
 	github.com/dsoprea/go-heic-exif-extractor/v2 v2.0.0-20210512044107-62067e44c235
 	github.com/dsoprea/go-jpeg-image-structure/v2 v2.0.0-20221012074422-4f3f7e934102
@@ -18,7 +18,7 @@ require (
 	github.com/sfomuseum/go-flags v0.11.0
 	github.com/strukturag/libheif-go v0.0.0-20250130134905-55b3482bea15
 	gocloud.dev v0.43.0
-	golang.org/x/image v0.31.0
+	golang.org/x/image v0.32.0
 )
 
 require (
@@ -44,7 +44,7 @@ require (
 	go4.org v0.0.0-20200411211856-f5505b9728dd // indirect
 	golang.org/x/net v0.43.0 // indirect
 	golang.org/x/sys v0.35.0 // indirect
-	golang.org/x/text v0.29.0 // indirect
+	golang.org/x/text v0.30.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
 	google.golang.org/api v0.242.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250715232539-7130f93afb79 // indirect

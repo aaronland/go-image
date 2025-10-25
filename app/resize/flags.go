@@ -14,6 +14,7 @@ var profile string
 var source_uri string
 var target_uri string
 var preserve_exif bool
+var format string
 var rotate bool
 
 var extra_transformations multi.MultiCSVString
@@ -32,6 +33,8 @@ func DefaultFlagSet() *flag.FlagSet {
 	fs.StringVar(&source_uri, "source-uri", "file:///", "A valid gocloud.dev/blob.Bucket URI where images are read from.")
 	fs.StringVar(&target_uri, "target-uri", "file:///", "A valid gocloud.dev/blob.Bucket URI where images are written to.")
 	fs.Var(&extra_transformations, "transformation-uri", "Zero or more additional `transform.Transformation` URIs used to further modify an image after resizing (and before any additional colour profile transformations are performed).")
+
+	fs.StringVar(&format, "image-format", "", "Save files using this image format (just the extension not the mime-type).")
 
 	fs.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Resize one or more images.\n")

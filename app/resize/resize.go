@@ -53,5 +53,9 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 		Paths:              paths,
 	}
 
+	if format != "" {
+		opts.ImageFormat = format
+	}
+
 	return transform.RunWithOptions(ctx, opts)
 }

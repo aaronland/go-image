@@ -71,6 +71,8 @@ $> ./bin/resize -h
 Resize one or more images.
 Usage:
 	./bin/resize uri(N) uri(N)
+  -image-format string
+    	Save files using this image format (just the extension not the mime-type).	
   -max int
     	The maximum dimension of the resized image
   -preserve-exif
