@@ -31,44 +31,34 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 
 	for i := 1; i < count; i++ {
 
-		other := images[i]
+		paths := []string{
+			current,
+			images[i],
+		}
 
+		suffix = i
+		multiply_uri := fmt.Sprintf("multiply://", other)
 
-	}
-	
-		multiply_uri := fmt.Sprintf("multiply://?max=%d", max)
-	suffix := fmt.Sprintf("-%d", max)
-
-	transformation_uris := []string{
-		resize_uri,
-	}
-
-	for _, e := range extra_transformations {
-		transformation_uris = append(transformation_uris, e)
-	}
-
-	// Always do colour profile stuff last
-
-	if profile != "" {
-		profile_uri := fmt.Sprintf("%s://", profile)
-		transformation_uris = append(transformation_uris, profile_uri)
-	}
-
-	paths := fs.Args()
-
-	opts := &transform.RunOptions{
-		TransformationURIs: transformation_uris,
-		ApplySuffix:        suffix,
-		SourceURI:          source_uri,
-		TargetURI:          target_uri,
-		Rotate:             rotate,
-		PreserveExif:       preserve_exif,
-		Paths:              paths,
+		transformation_uris := []string{
+			multiply_uri,
+		}
+		
+		opts := &transform.RunOptions{
+			TransformationURIs: transformation_uris,
+			ApplySuffix:        suffix,
+			SourceURI:          source_uri,
+			TargetURI:          target_uri,
+			Rotate:             rotate,
+			PreserveExif:       preserve_exif,
+			Paths:              paths,
+		}
+		
+		if format != "" {
+			opts.ImageFormat = format
+		}
+		
+		return transform.RunWithOptions(ctx, opts)
 	}
 
-	if format != "" {
-		opts.ImageFormat = format
-	}
-
-	return transform.RunWithOptions(ctx, opts)
+	// colour profile stuff
 }
