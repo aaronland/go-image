@@ -56,7 +56,7 @@ _Error handling removed for the sake of brevity._
 
 ## Tools
 
-``
+```
 $> make cli  TAGS=libheif
 go build -mod vendor -ldflags="-s -w" -tags 'libheif' -o bin/transform cmd/transform/main.go
 go build -mod vendor -ldflags="-s -w" -tags 'libheif' -o bin/resize cmd/resize/main.go
