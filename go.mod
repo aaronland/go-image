@@ -3,6 +3,7 @@ module github.com/aaronland/go-image/v2
 go 1.25.0
 
 require (
+	github.com/MaxHalford/halfgone v0.0.0-20171017091812-482157b86ccb
 	github.com/aaronland/go-roster v1.0.0
 	github.com/aaronland/gocloud v1.0.4
 	github.com/dsoprea/go-exif/v3 v3.0.1
@@ -10,6 +11,9 @@ require (
 	github.com/dsoprea/go-jpeg-image-structure/v2 v2.0.0-20221012074422-4f3f7e934102
 	github.com/dsoprea/go-png-image-structure/v2 v2.0.0-20210512210324-29b889a6093d
 	github.com/dsoprea/go-tiff-image-structure/v2 v2.0.0-20221003165014-8ecc4f52edca
+	github.com/fogleman/colormap v0.0.0-20240324153029-3da9a245d155
+	github.com/fogleman/contourmap v0.0.0-20190814184649-9f61d36c4199
+	github.com/fogleman/gg v1.3.0
 	github.com/gabriel-vasile/mimetype v1.4.13
 	github.com/mandykoh/prism v0.35.3
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
@@ -31,6 +35,7 @@ require (
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-xmlfmt/xmlfmt v0.0.0-20191208150333-d5b6f63a941b // indirect
+	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/golang/geo v0.0.0-20210211234256-740aa86cb551 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/googleapis/gax-go/v2 v2.15.0 // indirect

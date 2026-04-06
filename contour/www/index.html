@@ -1,0 +1,72 @@
+<html>
+    <head>
+	<title>Image contour</title>
+	<meta charset="utf-8" />
+	<meta http-equiv="x-ua-compatible" content="ie=edge" />	
+	<meta name="referrer" content="origin"/>
+	<meta name="apple-mobile-web-app-capable" content="yes"/>
+	<meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+	<meta name="HandheldFriendly" content="true"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no"/>
+	<title>extrude wasm</title>
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.5.3.6.min.css" />	
+	<link rel="stylesheet" type="text/css" href="css/index.css" />	
+    </head>
+    <body>
+	<div class="container">
+	    <div class="row" id="feedback"></div>
+	    
+	    <div class="row grid">
+		<div id="media-sources">
+
+		    <div class="mb-3">
+			<label class="iterations">Number of iterations <code id="iterations-count"></code></label>
+			<input type="range" min="1" max="12" id="iterations" name="iterations" class="form-range" steps="1" list="iterations-ticks" value="6" />
+			<datalist id="iterations-ticks">
+			    <option value="2"></option>
+			    <option value="4"></option>
+			    <option value="6"></option>
+			    <option value="8"></option>
+			    <option value="10"></option>
+			    <option value="12"></option>
+			</datalist>
+		    </div>
+		    
+		    <div id="video-source">
+			<h3>
+			    Contour from video feed
+			    <!-- https://icons.getbootstrap.com/icons/arrow-clockwise/ -->
+			    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#666" class="bi bi-arrow-clockwise" viewBox="0 0 16 16" id="contour-video-spinner-svg"><g id="contour-video-spinner"><path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z"/><path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466"/></g></svg>		    			    
+			</h3>
+			<video id="video"></video>
+			<button type="submit" id="start-video" class="btn btn-primary" disabled>Start video</button>
+			<button type="submit" id="stop-video" class="btn btn-primary" disabled>Stop video</button>
+			<button type="submit" id="contour-video" class="btn btn-primary" disabled>Contour</button>								
+		    </div>
+		    
+		    <div id="image-source">
+			<h3>
+			    Contour from from image
+			    <!-- https://icons.getbootstrap.com/icons/arrow-clockwise/ -->
+			    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#666" class="bi bi-arrow-clockwise" viewBox="0 0 16 16" id="contour-image-spinner-svg"><g id="contour-image-spinner"><path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z"/><path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466"/></g></svg>		    			    
+			</h3>			
+			<div id="image-wrapper"></div>
+			<form class="form">
+			    <div class="mb-3">
+				<input type="file" class="form-control" id="upload" placeholder="" disabled>
+				<div style="font-size:small; margin-bottom:.5rem;">
+				    Supported file types: <code>image/jpeg</code>, <code>image/png</code>, <code>image/gif</code>, <code>image/webp</code>
+				</div>
+				<button type="submit" id="image-button" class="btn btn-primary" disabled>Contour image</button>
+			    </div>
+			</form>
+		    </div>
+		
+		</div>
+		<div id="results"></div>		
+	    </div>
+	</div>
+	<script type="text/javascript" src="javascript/sfomuseum.golang.wasm.bundle.js"></script>
+	<script type="text/javascript" src="javascript/index.js"></script>
+    </body>
+</html>
